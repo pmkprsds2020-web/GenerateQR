@@ -85,12 +85,15 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all relative group",
               active
-                ? "bg-primary text-primary-foreground shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-md"
                 : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             )}
             aria-current={active ? "page" : undefined}
           >
-            <Icon className="h-4 w-4 shrink-0" />
+            {active && (
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary-foreground/80" />
+            )}
+            <Icon className={cn("h-4 w-4 shrink-0 transition-transform", active && "scale-110")} />
             <span className="flex-1 text-left">{item.label}</span>
             {item.id === "favorites" && favoritesCount > 0 && (
               <span

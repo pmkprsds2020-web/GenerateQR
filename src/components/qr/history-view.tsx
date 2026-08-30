@@ -37,7 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Star, Eye, Pencil, Copy, Trash2, Download, ChevronLeft, ChevronRight, History as HistoryIcon, Plus, FileSpreadsheet, BarChart3, Tag, X, Archive } from "lucide-react";
+import { Search, Star, Eye, Pencil, Copy, Trash2, Download, ChevronLeft, ChevronRight, History as HistoryIcon, Plus, FileSpreadsheet, BarChart3, Tag, X, Archive, ArrowUpDown } from "lucide-react";
 import { useQrStore } from "@/store/qr-store";
 import { QR_TYPE_LABELS, QR_TYPE_ICONS, type QrType } from "@/lib/qr/qr-types";
 import { QrPreview } from "./qr-preview";
@@ -66,6 +66,7 @@ export function HistoryView() {
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
   const [dateFilter, setDateFilter] = React.useState<string>("all");
   const [tagFilter, setTagFilter] = React.useState<string>("all");
+  const [sortBy, setSortBy] = React.useState<string>("newest");
   const [page, setPage] = React.useState(1);
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const [previewId, setPreviewId] = React.useState<string | null>(null);
@@ -180,8 +181,27 @@ export function HistoryView() {
         return true;
       });
     }
-    return list;
-  }, [records, search, typeFilter, tagFilter, dateFilter]);
+    // Sort
+    const sorted = [...list];
+    switch (sortBy) {
+      case "newest":
+        sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        break;
+      case "oldest":
+        sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        break;
+      case "name-asc":
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "name-desc":
+        sorted.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case "most-scanned":
+        sorted.sort((a, b) => getScanCount(b.id) - getScanCount(a.id));
+        break;
+    }
+    return sorted;
+  }, [records, search, typeFilter, tagFilter, dateFilter, sortBy, scanLogs]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -189,7 +209,7 @@ export function HistoryView() {
 
   React.useEffect(() => {
     setPage(1);
-  }, [search, typeFilter, tagFilter, dateFilter]);
+  }, [search, typeFilter, tagFilter, dateFilter, sortBy]);
 
   const previewRecord = previewId ? records.find((r) => r.id === previewId) : null;
 
@@ -349,6 +369,21 @@ export function HistoryView() {
                 <SelectItem value="today">Hari Ini</SelectItem>
                 <SelectItem value="week">Minggu Ini</SelectItem>
                 <SelectItem value="month">Bulan Ini</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <div className="flex items-center gap-1.5">
+                  <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Terbaru</SelectItem>
+                <SelectItem value="oldest">Terlama</SelectItem>
+                <SelectItem value="name-asc">Nama A-Z</SelectItem>
+                <SelectItem value="name-desc">Nama Z-A</SelectItem>
+                <SelectItem value="most-scanned">Paling Sering Dipindai</SelectItem>
               </SelectContent>
             </Select>
           </div>

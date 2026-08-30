@@ -1130,3 +1130,74 @@ Priority Recommendations for Next Phase:
 - Add QR expiration/password protection option
 - Add more chart interactivity (click-to-filter)
 - Add QR Code quick preview on hover (history table)
+
+---
+Task ID: 12
+Agent: Web Dev Review Agent (cron)
+Task: Sort options, gradient card borders, sidebar active indicator
+
+Work Log:
+- Read worklog.md to understand previous progress (recent searches, quick actions, shimmer loading)
+- ESLint: 0 errors, 0 warnings (clean)
+- Server verified rendering correctly via curl: "QR GEN PRO", "Buat QR Code", "Bandingkan"
+
+New Features Added:
+1. Sort Options in History View:
+   - Added `sortBy` state with 5 options: newest, oldest, name-asc, name-desc, most-scanned
+   - Sort dropdown with ArrowUpDown icon in select trigger
+   - Sorting applied after filtering in useMemo
+   - "Terbaru" (newest) - default, sorts by creation date descending
+   - "Terlama" (oldest) - sorts by creation date ascending
+   - "Nama A-Z" - alphabetical by name
+   - "Nama Z-A" - reverse alphabetical by name
+   - "Paling Sering Dipindai" - most scanned first (uses getScanCount)
+   - Page resets to 1 when sort changes
+
+Styling Enhancements:
+1. Gradient Borders on Premium Cards:
+   - Updated `.card-premium` CSS with `::before` pseudo-element
+   - Gradient border appears on hover (emerald to blue, low opacity)
+   - Uses mask-composite for precise border rendering
+   - Smooth opacity transition (0.3s)
+   - Cards now have: lift effect + shadow + gradient border on hover
+
+2. Sidebar Active Indicator:
+   - Added left-edge indicator bar on active nav item
+   - White/foreground colored bar (h-6 w-1) on left side
+   - Active icon scales up (scale-110) with transition
+   - Shadow upgraded from shadow-sm to shadow-md on active item
+   - Better visual hierarchy for current page
+
+Verification Results:
+- ESLint: 0 errors, 0 warnings (clean)
+- Page renders correctly via curl:
+  - "QR GEN PRO" title present
+  - "Buat QR Code" heading present
+  - "Bandingkan" sidebar item present
+- Server compiles and serves requests successfully
+- All new features properly integrated
+
+Stage Summary:
+- 1 new feature: Sort options with 5 sorting methods
+- 2 styling enhancements: gradient card borders, sidebar active indicator
+- History view now supports full sorting capability
+- Premium cards have elegant gradient borders on hover
+- Sidebar has clear active state with indicator bar and icon scaling
+- All code verified via lint (0 errors) and curl rendering
+
+Unresolved Issues / Risks:
+- Server still crashes under heavy browser load (sandbox memory limitation)
+- Authentication still not implemented (schema ready, NextAuth available)
+- API routes exist but frontend uses localStorage (integration pending auth)
+- Multi-language support (EN/ID) not yet implemented
+- QR expiration/password protection not yet implemented
+- Skeleton loaders created but not yet integrated into views
+
+Priority Recommendations for Next Phase:
+- Integrate skeleton loaders into Favorites/History/Dashboard views
+- Implement NextAuth authentication with role-based access
+- Wire API routes to frontend when authenticated
+- Add multi-language support (EN/ID toggle)
+- Add QR expiration/password protection option
+- Add QR Code quick preview on hover (history table)
+- Add more chart interactivity (click-to-filter)
