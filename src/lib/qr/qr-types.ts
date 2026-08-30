@@ -44,6 +44,7 @@ export interface QrRecord {
   createdAt: string;
   updatedAt: string;
   favorite: boolean;
+  tags?: string[];
 }
 
 export const QR_TYPE_LABELS: Record<QrType, string> = {

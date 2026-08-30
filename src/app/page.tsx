@@ -1,23 +1,58 @@
 "use client";
 
 import * as React from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { GenerateView } from "@/components/qr/generate-view";
-import { DashboardView } from "@/components/qr/dashboard-view";
-import { ScannerView } from "@/components/qr/scanner-view";
-import { HistoryView } from "@/components/qr/history-view";
-import { FavoritesView } from "@/components/qr/favorites-view";
-import { TemplatesView } from "@/components/qr/templates-view";
-import { StatisticsView } from "@/components/qr/statistics-view";
-import { SettingsView } from "@/components/qr/settings-view";
-import { BatchView } from "@/components/qr/batch-view";
-import { CompareView } from "@/components/qr/compare-view";
 import { CommandPalette } from "@/components/qr/command-palette";
 import { OnboardingTour } from "@/components/qr/onboarding-tour";
 import { KeyboardShortcutsHelp } from "@/components/qr/keyboard-shortcuts-help";
 import { useQrStore } from "@/store/qr-store";
-import { QrCode, Heart } from "lucide-react";
+import { QrCode, Heart, Loader2 } from "lucide-react";
+
+// Lazy load views to reduce initial bundle size
+// Only the active view is loaded, preventing memory issues
+const GenerateView = dynamic(() => import("@/components/qr/generate-view").then(m => ({ default: m.GenerateView })), {
+  loading: () => <ViewLoader />,
+});
+const DashboardView = dynamic(() => import("@/components/qr/dashboard-view").then(m => ({ default: m.DashboardView })), {
+  loading: () => <ViewLoader />,
+});
+const ScannerView = dynamic(() => import("@/components/qr/scanner-view").then(m => ({ default: m.ScannerView })), {
+  loading: () => <ViewLoader />,
+});
+const HistoryView = dynamic(() => import("@/components/qr/history-view").then(m => ({ default: m.HistoryView })), {
+  loading: () => <ViewLoader />,
+});
+const FavoritesView = dynamic(() => import("@/components/qr/favorites-view").then(m => ({ default: m.FavoritesView })), {
+  loading: () => <ViewLoader />,
+});
+const TemplatesView = dynamic(() => import("@/components/qr/templates-view").then(m => ({ default: m.TemplatesView })), {
+  loading: () => <ViewLoader />,
+});
+const StatisticsView = dynamic(() => import("@/components/qr/statistics-view").then(m => ({ default: m.StatisticsView })), {
+  loading: () => <ViewLoader />,
+});
+const SettingsView = dynamic(() => import("@/components/qr/settings-view").then(m => ({ default: m.SettingsView })), {
+  loading: () => <ViewLoader />,
+});
+const BatchView = dynamic(() => import("@/components/qr/batch-view").then(m => ({ default: m.BatchView })), {
+  loading: () => <ViewLoader />,
+});
+const CompareView = dynamic(() => import("@/components/qr/compare-view").then(m => ({ default: m.CompareView })), {
+  loading: () => <ViewLoader />,
+});
+
+function ViewLoader() {
+  return (
+    <div className="flex items-center justify-center py-24">
+      <div className="flex flex-col items-center gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Memuat...</p>
+      </div>
+    </div>
+  );
+}
 
 function ViewRouter() {
   const activeView = useQrStore((s) => s.activeView);

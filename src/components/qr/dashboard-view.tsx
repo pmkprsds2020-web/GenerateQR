@@ -8,6 +8,7 @@ import { QrCode, Calendar, CalendarDays, Star, TrendingUp, Plus, ScanLine, Arrow
 import { useQrStore } from "@/store/qr-store";
 import { QR_TYPE_LABELS, QR_TYPE_ICONS, type QrType } from "@/lib/qr/qr-types";
 import { ActivityHeatmap } from "./activity-heatmap";
+import { AnimatedNumber } from "./animated-number";
 import {
   BarChart,
   Bar,
@@ -354,7 +355,7 @@ function StatCard({
         <div className="flex items-start justify-between">
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground font-medium">{title}</p>
-            <p className="text-3xl font-bold mt-1 tabular-nums">{value}</p>
+            <AnimatedNumber value={value} className="text-3xl font-bold mt-1 tabular-nums block" />
             {subtitle && <p className="text-[11px] text-muted-foreground/70 mt-0.5 truncate">{subtitle}</p>}
           </div>
           <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} shadow-md shrink-0 group-hover:scale-110 transition-transform`}>

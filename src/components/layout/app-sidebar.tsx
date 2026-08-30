@@ -122,7 +122,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 function SidebarHeader() {
   return (
     <div className="flex items-center gap-2.5 px-5 py-5 border-b">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm shrink-0">
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shrink-0">
         <QrCode className="h-5 w-5" />
       </div>
       <div className="flex flex-col leading-none">
@@ -152,9 +152,9 @@ function SidebarFooter() {
 export function AppSidebar() {
   return (
     <>
-      <aside className="w-[260px] shrink-0 hidden md:flex flex-col h-screen sticky top-0 bg-sidebar border-r">
+      <aside className="w-[260px] shrink-0 hidden md:flex flex-col h-screen sticky top-0 bg-sidebar/80 backdrop-blur-xl border-r">
         <SidebarHeader />
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 overflow-y-auto py-2 scrollbar-thin">
           <NavLinks />
         </div>
         <SidebarFooter />

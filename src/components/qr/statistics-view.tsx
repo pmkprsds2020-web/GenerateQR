@@ -20,6 +20,7 @@ import {
   AreaChart,
 } from "recharts";
 import { BarChart3, TrendingUp, PieChart as PieIcon, Calendar, Zap, Eye } from "lucide-react";
+import { AnimatedNumber } from "./animated-number";
 
 const COLORS = ["#0ea5e9", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#ef4444", "#6366f1", "#14b8a6", "#f97316", "#84cc16", "#06b6d4", "#a855f7"];
 
@@ -110,7 +111,7 @@ export function StatisticsView() {
               <p className="text-xs text-muted-foreground">Total Dibuat</p>
               <BarChart3 className="h-4 w-4 text-primary/60" />
             </div>
-            <p className="text-2xl font-bold mt-1 tabular-nums">{total}</p>
+            <AnimatedNumber value={total} className="text-2xl font-bold mt-1 tabular-nums block" />
           </CardContent>
         </Card>
         <Card className="card-premium">
@@ -119,7 +120,7 @@ export function StatisticsView() {
               <p className="text-xs text-muted-foreground">Bulan Ini</p>
               <Calendar className="h-4 w-4 text-violet-500/60" />
             </div>
-            <p className="text-2xl font-bold mt-1 tabular-nums">{thisMonth}</p>
+            <AnimatedNumber value={thisMonth} className="text-2xl font-bold mt-1 tabular-nums block" />
           </CardContent>
         </Card>
         <Card className="card-premium">
@@ -128,7 +129,7 @@ export function StatisticsView() {
               <p className="text-xs text-muted-foreground">Favorit</p>
               <TrendingUp className="h-4 w-4 text-amber-500/60" />
             </div>
-            <p className="text-2xl font-bold mt-1 tabular-nums">{favorites}</p>
+            <AnimatedNumber value={favorites} className="text-2xl font-bold mt-1 tabular-nums block" />
           </CardContent>
         </Card>
         <Card className="card-premium">
@@ -137,7 +138,7 @@ export function StatisticsView() {
               <p className="text-xs text-muted-foreground">Total Scan</p>
               <Zap className="h-4 w-4 text-emerald-500/60" />
             </div>
-            <p className="text-2xl font-bold mt-1 tabular-nums">{totalScans}</p>
+            <AnimatedNumber value={totalScans} className="text-2xl font-bold mt-1 tabular-nums block" />
             <p className="text-[10px] text-muted-foreground">{scansToday} hari ini</p>
           </CardContent>
         </Card>

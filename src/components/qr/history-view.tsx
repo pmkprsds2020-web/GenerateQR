@@ -37,10 +37,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Star, Eye, Pencil, Copy, Trash2, Download, ChevronLeft, ChevronRight, History as HistoryIcon, Plus, FileSpreadsheet, BarChart3 } from "lucide-react";
+import { Search, Star, Eye, Pencil, Copy, Trash2, Download, ChevronLeft, ChevronRight, History as HistoryIcon, Plus, FileSpreadsheet, BarChart3, Tag, X } from "lucide-react";
 import { useQrStore } from "@/store/qr-store";
 import { QR_TYPE_LABELS, QR_TYPE_ICONS, type QrType } from "@/lib/qr/qr-types";
 import { QrPreview } from "./qr-preview";
+import { TagInput } from "./tag-input";
 import { downloadQrCode } from "@/lib/qr/qr-download";
 import { toast } from "sonner";
 
@@ -55,6 +56,7 @@ export function HistoryView() {
   const setEditingId = useQrStore((s) => s.setEditingId);
   const logScan = useQrStore((s) => s.logScan);
   const scanLogs = useQrStore((s) => s.scanLogs);
+  const updateTags = useQrStore((s) => s.updateTags);
 
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
@@ -323,7 +325,7 @@ export function HistoryView() {
                             <span className="text-lg">{QR_TYPE_ICONS[r.type]}</span>
                             <div className="min-w-0">
                               <p className="font-medium text-sm truncate max-w-[180px]">{r.name}</p>
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex items-center gap-1.5 flex-wrap">
                                 {r.favorite && (
                                   <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
                                 )}
@@ -332,6 +334,15 @@ export function HistoryView() {
                                     <BarChart3 className="h-2.5 w-2.5" />
                                     {getScanCount(r.id)}
                                   </Badge>
+                                )}
+                                {r.tags?.slice(0, 2).map((tag) => (
+                                  <Badge key={tag} variant="outline" className="text-[10px] px-1 py-0 h-4">
+                                    <Tag className="h-2.5 w-2.5 mr-0.5" />
+                                    {tag}
+                                  </Badge>
+                                ))}
+                                {r.tags && r.tags.length > 2 && (
+                                  <span className="text-[10px] text-muted-foreground">+{r.tags.length - 2}</span>
                                 )}
                               </div>
                             </div>
@@ -487,6 +498,11 @@ export function HistoryView() {
                 <div className="rounded-md bg-muted/50 p-2 text-xs font-mono break-all max-h-32 overflow-y-auto">
                   {previewRecord.content}
                 </div>
+                {/* Tags */}
+                <TagInput
+                  tags={previewRecord.tags || []}
+                  onChange={(tags) => updateTags(previewRecord.id, tags)}
+                />
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <Button variant="outline" size="sm" onClick={() => handleDownload(previewRecord)}>

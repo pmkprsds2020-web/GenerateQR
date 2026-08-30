@@ -42,6 +42,7 @@ interface QrStoreState {
   deleteQr: (id: string) => void;
   duplicateQr: (id: string) => QrRecord | null;
   toggleFavorite: (id: string) => void;
+  updateTags: (id: string, tags: string[]) => void;
   getQr: (id: string) => QrRecord | undefined;
 
   saveCustomTemplate: (tpl: Omit<CustomTemplate, "id" | "createdAt">) => CustomTemplate;
@@ -124,6 +125,14 @@ export const useQrStore = create<QrStoreState>()(
         set((state) => ({
           records: state.records.map((r) =>
             r.id === id ? { ...r, favorite: !r.favorite } : r
+          ),
+        }));
+      },
+
+      updateTags: (id, tags) => {
+        set((state) => ({
+          records: state.records.map((r) =>
+            r.id === id ? { ...r, tags, updatedAt: new Date().toISOString() } : r
           ),
         }));
       },

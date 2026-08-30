@@ -834,3 +834,103 @@ Priority Recommendations for Next Phase:
 - Add QR expiration/password protection option
 - Add JSZip for batch QR download as ZIP
 - Add more chart interactivity (click-to-filter)
+
+---
+Task ID: 9
+Agent: Web Dev Review Agent (cron)
+Task: Dynamic imports optimization, AnimatedNumber, Tags/Labels, Glassmorphism sidebar
+
+Work Log:
+- Read worklog.md to understand previous progress (recent types, pro tips, quick insights)
+- Identified ongoing server crash issue under browser load
+- Applied next/dynamic code splitting for all 10 views to reduce initial bundle size
+- ESLint: 0 errors, 0 warnings (clean)
+- Page renders correctly via curl: "QR GEN PRO", "Buat QR Code", "Bandingkan" all present
+
+Performance Optimizations:
+1. Code Splitting with next/dynamic:
+   - All 10 views (Generate, Dashboard, Scanner, History, Favorites, Templates, Statistics, Settings, Batch, Compare) now use next/dynamic
+   - Only the active view's code is loaded on demand
+   - Loading state shows spinner with "Memuat..." text
+   - Heavy dependencies (recharts, framer-motion) only loaded when needed
+   - This should significantly reduce memory pressure on initial page load
+
+New Features Added:
+1. Animated Number Counter (AnimatedNumber component):
+   - Created src/components/qr/animated-number.tsx
+   - Smooth count-up animation with ease-out cubic easing
+   - Configurable duration (default 800ms)
+   - Custom format function support
+   - Uses requestAnimationFrame for smooth 60fps animation
+   - Integrated into Dashboard stat cards (4 cards)
+   - Integrated into Statistics view summary cards (4 cards)
+   - Numbers animate from 0 to target value on view load
+
+2. Tags/Labels System for QR Organization:
+   - Added `tags?: string[]` field to QrRecord interface
+   - Added `updateTags` method to Zustand store
+   - Created TagInput component (src/components/qr/tag-input.tsx):
+     - Add tags via input field + Enter key or Plus button
+     - Remove tags with X button on each badge
+     - Backspace removes last tag when input is empty
+     - Max 10 tags per QR code
+     - Auto-lowercase and deduplication
+     - Color-coded badges (6 color variants based on hash)
+     - Tag counter showing X/maxTags
+   - Tags displayed in History table rows (max 2 shown, "+N" for more)
+   - Tags displayed and editable in History preview dialog
+   - Tags persist in localStorage via Zustand store
+
+Styling Enhancements:
+1. Sidebar Glassmorphism:
+   - Added `backdrop-blur-xl` and `bg-sidebar/80` for glass effect
+   - Translucent sidebar background with blur
+   - Added `scrollbar-thin` for cleaner scrollbar
+   - Gradient logo: `bg-gradient-to-br from-primary to-primary/70` with shadow-md
+
+2. Animated Numbers:
+   - Dashboard stat cards: numbers animate on load
+   - Statistics summary cards: numbers animate on load
+   - `tabular-nums` class for consistent number width
+   - `block` display for proper animation rendering
+
+3. Tag Badges:
+   - Color-coded with 6 variants (sky, emerald, violet, amber, pink, teal)
+   - Color determined by tag name hash (consistent per tag)
+   - Compact `text-[10px]` with `h-4` height in table rows
+   - Full-size in preview dialog with remove buttons
+
+Verification Results:
+- ESLint: 0 errors, 0 warnings (clean)
+- Page renders correctly via curl:
+  - "QR GEN PRO" title present
+  - "Buat QR Code" heading present
+  - "Bandingkan" sidebar item present
+- Code splitting verified: next/dynamic imports configured for all views
+- All new components created and imported correctly
+
+Stage Summary:
+- 1 performance optimization: next/dynamic code splitting for all views
+- 2 new features: AnimatedNumber counter, Tags/Labels system
+- 2 styling enhancements: glassmorphism sidebar, gradient logo
+- All code verified via lint (0 errors) and curl rendering
+- App architecture improved with lazy loading
+
+Unresolved Issues / Risks:
+- Server still crashes under heavy browser load (sandbox memory limitation)
+- Authentication still not implemented (schema ready, NextAuth available)
+- API routes exist but frontend uses localStorage (integration pending auth)
+- Multi-language support (EN/ID) not yet implemented
+- QR expiration/password protection not yet implemented
+- Skeleton loaders created but not yet integrated into views
+- Tag filtering in History view not yet implemented
+
+Priority Recommendations for Next Phase:
+- Add tag filter dropdown in History view
+- Integrate skeleton loaders into Favorites/History/Dashboard views
+- Implement NextAuth authentication with role-based access
+- Wire API routes to frontend when authenticated
+- Add multi-language support (EN/ID toggle)
+- Add QR expiration/password protection option
+- Add JSZip for batch QR download as ZIP
+- Add more chart interactivity (click-to-filter)
