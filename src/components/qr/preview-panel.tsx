@@ -5,10 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Download, Copy, ImageIcon, Link2, Save, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import { Download, Copy, ImageIcon, Link2, Save, AlertTriangle, CheckCircle2, Info, Printer, Share2, MoreHorizontal, FileText } from "lucide-react";
 import { QrPreview } from "./qr-preview";
 import { DownloadDialog } from "./download-dialog";
-import { checkQrQuality, copyQrImage } from "@/lib/qr/qr-download";
+import { checkQrQuality, copyQrImage, downloadQrCode } from "@/lib/qr/qr-download";
 import type { QrCustomization } from "@/lib/qr/qr-types";
 import { toast } from "sonner";
 
@@ -30,11 +38,16 @@ export function PreviewPanel({
   const [downloadOpen, setDownloadOpen] = React.useState(false);
   const quality = React.useMemo(() => checkQrQuality(content, customization), [content, customization]);
 
-  const copyContent = async () => {
+  const requireContent = () => {
     if (!content) {
       toast.warning("Mohon lengkapi data terlebih dahulu.");
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const copyContent = async () => {
+    if (!requireContent()) return;
     try {
       await navigator.clipboard.writeText(content);
       toast.success("✓ Berhasil disalin.");
@@ -44,10 +57,7 @@ export function PreviewPanel({
   };
 
   const copyImage = async () => {
-    if (!content) {
-      toast.warning("Mohon lengkapi data terlebih dahulu.");
-      return;
-    }
+    if (!requireContent()) return;
     const ok = await copyQrImage(content, customization);
     if (ok) {
       toast.success("✓ Gambar QR berhasil disalin.");
@@ -57,10 +67,7 @@ export function PreviewPanel({
   };
 
   const copyUrl = async () => {
-    if (!content) {
-      toast.warning("Mohon lengkapi data terlebih dahulu.");
-      return;
-    }
+    if (!requireContent()) return;
     const url = /^https?:\/\//i.test(content) ? content : content.startsWith("mailto:") ? content : null;
     if (url) {
       try {
@@ -74,13 +81,89 @@ export function PreviewPanel({
     }
   };
 
+  const handlePrint = async () => {
+    if (!requireContent()) return;
+    try {
+      const { generateSvgString } = await import("@/lib/qr/qr-download");
+      const svg = await generateSvgString(content, customization, 512);
+      const printWindow = window.open("", "_blank", "width=600,height=600");
+      if (!printWindow) {
+        toast.error("Popup diblokir. Izinkan popup untuk mencetak.");
+        return;
+      }
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Cetak QR Code - ${title || "QR GEN PRO"}</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: -apple-system, system-ui, sans-serif; padding: 40px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+            .qr-container { width: 400px; height: 400px; }
+            .title { margin-top: 24px; font-size: 20px; font-weight: 600; text-align: center; }
+            .meta { margin-top: 8px; font-size: 12px; color: #666; text-align: center; }
+            .content { margin-top: 16px; font-size: 11px; color: #888; word-break: break-all; max-width: 400px; text-align: center; font-family: monospace; }
+            .footer { margin-top: 32px; font-size: 10px; color: #aaa; }
+            @media print { body { padding: 20px; } }
+          </style>
+        </head>
+        <body>
+          <div class="qr-container">${svg}</div>
+          <div class="title">${title || "QR Code"}</div>
+          <div class="meta">Dibuat dengan QR GEN PRO - ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</div>
+          ${content ? `<div class="content">${content.replace(/</g, "&lt;")}</div>` : ""}
+          <div class="footer">QR GEN PRO — QR Code Generator</div>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      setTimeout(() => {
+        printWindow.print();
+      }, 300);
+      toast.success("✓ Dialog cetak telah dibuka.");
+    } catch {
+      toast.error("Gagal mencetak QR Code.");
+    }
+  };
+
+  const handleShare = async () => {
+    if (!requireContent()) return;
+    const shareData: ShareData = {
+      title: title || "QR Code",
+      text: "Lihat QR Code ini",
+    };
+    if (/^https?:\/\//i.test(content)) {
+      shareData.url = content;
+    } else {
+      shareData.text = content;
+    }
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        toast.success("✓ QR Code dibagikan.");
+      } else {
+        await navigator.clipboard.writeText(content);
+        toast.success("✓ Web Share tidak didukung. Konten disalin sebagai gantinya.");
+      }
+    } catch (err: any) {
+      if (err?.name !== "AbortError") {
+        toast.error("Gagal membagikan.");
+      }
+    }
+  };
+
   return (
-    <Card className="sticky top-4 overflow-hidden">
+    <Card className="sticky top-4 overflow-hidden card-premium">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Preview</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+            </div>
+            Preview
+          </CardTitle>
           {quality.ok ? (
-            <Badge variant="secondary" className="text-emerald-600 gap-1">
+            <Badge variant="secondary" className="text-emerald-600 gap-1 bg-emerald-500/10">
               <CheckCircle2 className="h-3 w-3" />
               Siap
             </Badge>
@@ -94,7 +177,7 @@ export function PreviewPanel({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* QR Display */}
-        <div className="flex justify-center rounded-xl bg-muted/30 p-6">
+        <div className="flex justify-center rounded-xl bg-gradient-to-br from-muted/40 to-muted/20 p-6 border border-border/40">
           <QrPreview content={content} customization={customization} size={300} />
         </div>
 
@@ -125,35 +208,50 @@ export function PreviewPanel({
 
         <Separator />
 
-        {/* Action buttons */}
-        <div className="grid grid-cols-2 gap-2">
-          <Button onClick={() => setDownloadOpen(true)} disabled={!content} className="col-span-2">
-            <Download className="h-4 w-4 mr-2" />
-            Download QR Code
-          </Button>
-          <Button variant="outline" size="sm" onClick={copyImage} disabled={!content}>
-            <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
-            Copy Image
-          </Button>
-          <Button variant="outline" size="sm" onClick={copyContent} disabled={!content}>
-            <Copy className="h-3.5 w-3.5 mr-1.5" />
-            Copy Content
-          </Button>
-          <Button variant="outline" size="sm" onClick={copyUrl} disabled={!content}>
-            <Link2 className="h-3.5 w-3.5 mr-1.5" />
-            Copy URL
-          </Button>
-          <Button variant="default" size="sm" onClick={onSave} disabled={!content}>
-            <Save className="h-3.5 w-3.5 mr-1.5" />
-            {saveLabel}
-          </Button>
+        {/* Primary actions */}
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Button onClick={() => setDownloadOpen(true)} disabled={!content} className="flex-1 shadow-sm">
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+            <Button variant="outline" size="icon" onClick={handleShare} disabled={!content} title="Bagikan" className="shadow-sm">
+              <Share2 className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={handlePrint} disabled={!content} title="Cetak" className="shadow-sm">
+              <Printer className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Secondary actions */}
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" size="sm" onClick={copyImage} disabled={!content}>
+              <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+              Copy Image
+            </Button>
+            <Button variant="outline" size="sm" onClick={copyContent} disabled={!content}>
+              <Copy className="h-3.5 w-3.5 mr-1.5" />
+              Copy Content
+            </Button>
+            <Button variant="outline" size="sm" onClick={copyUrl} disabled={!content}>
+              <Link2 className="h-3.5 w-3.5 mr-1.5" />
+              Copy URL
+            </Button>
+            <Button variant="default" size="sm" onClick={onSave} disabled={!content}>
+              <Save className="h-3.5 w-3.5 mr-1.5" />
+              {saveLabel}
+            </Button>
+          </div>
         </div>
 
         {/* Content preview */}
         {content && (
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Konten QR:</p>
-            <div className="rounded-md bg-muted/50 p-2 text-xs font-mono break-all max-h-24 overflow-y-auto">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <FileText className="h-3 w-3" />
+              Konten QR:
+            </p>
+            <div className="rounded-md bg-muted/50 p-2 text-xs font-mono break-all max-h-24 overflow-y-auto scrollbar-thin">
               {content}
             </div>
           </div>

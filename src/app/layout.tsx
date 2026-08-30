@@ -16,7 +16,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "QR GEN PRO — QR Code Generator Gratis",
+  metadataBase: new URL("https://qr-gen-pro.app"),
+  title: {
+    default: "QR GEN PRO — QR Code Generator Gratis",
+    template: "%s — QR GEN PRO",
+  },
   description:
     "Buat QR Code dengan cepat untuk website, WhatsApp, WiFi, email, kontak, lokasi, dan berbagai kebutuhan lainnya. Download PNG, JPG, SVG, PDF.",
   keywords: [

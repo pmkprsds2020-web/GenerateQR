@@ -34,7 +34,7 @@ export function QrPreview({ content, customization, size = 320, className }: QrP
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [content, customization.fgColor, customization.bgColor, customization.margin, customization.errorCorrectionLevel, customization.logoDataUrl, customization.logoSize, customization.pixelShape, size]);
+  }, [content, customization.fgColor, customization.bgColor, customization.margin, customization.errorCorrectionLevel, customization.logoDataUrl, customization.logoSize, customization.pixelShape, customization.gradientEnabled, customization.gradientColor1, customization.gradientColor2, customization.gradientDirection, size]);
 
   if (!content.trim()) {
     return (
@@ -109,9 +109,22 @@ async function generateSvg(content: string, customization: QrCustomization, size
       logoSvg += `<image href="${customization.logoDataUrl}" x="${logoOffset}" y="${logoOffset}" width="${logoSize}" height="${logoSize}" preserveAspectRatio="xMidYMid meet"/>`;
     }
 
+    const useGradient = customization.gradientEnabled && customization.gradientColor1 && customization.gradientColor2;
+    const gradId = "qr-grad-" + Math.random().toString(36).slice(2, 8);
+    const direction = customization.gradientDirection ?? 135;
+    const rad = (direction * Math.PI) / 180;
+    const x2 = (Math.cos(rad) * 0.5 + 0.5) * 100;
+    const y2 = (Math.sin(rad) * 0.5 + 0.5) * 100;
+
+    const fillDef = useGradient
+      ? `<defs><linearGradient id="${gradId}" x1="0%" y1="0%" x2="${x2}%" y2="${y2}%"><stop offset="0%" stop-color="${customization.gradientColor1}"/><stop offset="100%" stop-color="${customization.gradientColor2}"/></linearGradient></defs>`
+      : "";
+    const fillValue = useGradient ? `url(#${gradId})` : customization.fgColor;
+
     return `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 ${size} ${size}" shape-rendering="geometricPrecision" style="max-width:100%;height:auto;">
+  ${fillDef}
   <rect width="${size}" height="${size}" fill="${customization.bgColor}"/>
-  <g fill="${customization.fgColor}">${modulesSvg}</g>
+  <g fill="${fillValue}">${modulesSvg}</g>
   ${logoSvg}
 </svg>`;
   } catch {

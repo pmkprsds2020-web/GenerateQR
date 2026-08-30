@@ -29,23 +29,25 @@ function Field({
   children,
   required,
   hint,
+  htmlFor,
 }: {
   label: string;
   error?: string;
   required?: boolean;
   hint?: string;
+  htmlFor?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-sm font-medium flex items-center gap-1">
+      <Label htmlFor={htmlFor} className="text-sm font-medium flex items-center gap-1">
         {label}
         {required && <span className="text-destructive">*</span>}
       </Label>
       {children}
       {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
       {error && (
-        <p className="text-xs text-destructive flex items-center gap-1">
+        <p className="text-xs text-destructive flex items-center gap-1 animate-fade-in">
           <span aria-hidden>⚠</span>
           {error}
         </p>
@@ -56,23 +58,36 @@ function Field({
 
 export function QrForm({ type, data, errors, onChange }: QrFormProps) {
   const update = (patch: Partial<QrFormData>) => onChange({ ...data, ...patch });
+  // Track touched fields so errors only show after user interacts
+  const [touched, setTouched] = React.useState<Record<string, boolean>>({});
+
+  // Reset touched when type changes
+  React.useEffect(() => {
+    setTouched({});
+  }, [type]);
+
+  const touch = (field: string) => setTouched((t) => ({ ...t, [field]: true }));
+  const showError = (field: string) => (touched[field] ? errors[field] : undefined);
 
   return (
     <div className="space-y-4">
       {/* Name field - common to all */}
-      <Field label="Judul QR Code" required>
+      <Field label="Judul QR Code" htmlFor="qr-name" error={showError("name")}>
         <Input
+          id="qr-name"
           value={(data as any).name || ""}
           onChange={(e) => update({ name: e.target.value } as any)}
+          onBlur={() => touch("name")}
           placeholder="contoh: QR Website Toko"
         />
       </Field>
 
       {type === "url" && (
-        <Field label="URL" required error={errors.url} hint="Contoh: https://example.com">
+        <Field label="URL" required error={showError("url")} hint="Contoh: https://example.com">
           <Input
             value={data.url || ""}
             onChange={(e) => update({ url: e.target.value })}
+            onBlur={() => touch("url")}
             placeholder="https://example.com"
             inputMode="url"
           />
@@ -80,10 +95,11 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
       )}
 
       {type === "text" && (
-        <Field label="Teks" required error={errors.text}>
+        <Field label="Teks" required error={showError("text")}>
           <Textarea
             value={data.text || ""}
             onChange={(e) => update({ text: e.target.value })}
+            onBlur={() => touch("text")}
             placeholder="Masukkan teks apa saja..."
             rows={4}
           />
@@ -91,10 +107,11 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
       )}
 
       {type === "phone" && (
-        <Field label="Nomor Telepon" required error={errors.phone} hint="Contoh: +628123456789">
+        <Field label="Nomor Telepon" required error={showError("phone")} hint="Contoh: +628123456789">
           <Input
             value={data.phone || ""}
             onChange={(e) => update({ phone: e.target.value })}
+            onBlur={() => touch("phone")}
             placeholder="+628123456789"
             inputMode="tel"
           />
@@ -106,12 +123,13 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
           <Field
             label="Nomor WhatsApp"
             required
-            error={errors.whatsappNumber}
+            error={showError("whatsappNumber")}
             hint="Format internasional tanpa +, contoh: 628123456789"
           >
             <Input
               value={data.whatsappNumber || ""}
               onChange={(e) => update({ whatsappNumber: e.target.value })}
+              onBlur={() => touch("whatsappNumber")}
               placeholder="628123456789"
               inputMode="numeric"
             />
@@ -142,10 +160,11 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
 
       {type === "email" && (
         <>
-          <Field label="Email Tujuan" required error={errors.emailTo}>
+          <Field label="Email Tujuan" required error={showError("emailTo")}>
             <Input
               value={data.emailTo || ""}
               onChange={(e) => update({ emailTo: e.target.value })}
+              onBlur={() => touch("emailTo")}
               placeholder="admin@example.com"
               inputMode="email"
             />
@@ -170,10 +189,11 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
 
       {type === "sms" && (
         <>
-          <Field label="Nomor Telepon" required error={errors.smsNumber}>
+          <Field label="Nomor Telepon" required error={showError("smsNumber")}>
             <Input
               value={data.smsNumber || ""}
               onChange={(e) => update({ smsNumber: e.target.value })}
+              onBlur={() => touch("smsNumber")}
               placeholder="+628123456789"
               inputMode="tel"
             />
@@ -191,10 +211,11 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
 
       {type === "wifi" && (
         <>
-          <Field label="Nama WiFi (SSID)" required error={errors.wifiSsid}>
+          <Field label="Nama WiFi (SSID)" required error={showError("wifiSsid")}>
             <Input
               value={data.wifiSsid || ""}
               onChange={(e) => update({ wifiSsid: e.target.value })}
+              onBlur={() => touch("wifiSsid")}
               placeholder="MyWiFiNetwork"
             />
           </Field>
@@ -214,10 +235,11 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
             </Select>
           </Field>
           {data.wifiSecurity !== "nopass" && (
-            <Field label="Password" required error={errors.wifiPassword}>
+            <Field label="Password" required error={showError("wifiPassword")}>
               <Input
                 value={data.wifiPassword || ""}
                 onChange={(e) => update({ wifiPassword: e.target.value })}
+                onBlur={() => touch("wifiPassword")}
                 placeholder="Password WiFi"
                 type="text"
               />
@@ -238,10 +260,11 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
 
       {type === "vcard" && (
         <>
-          <Field label="Nama Lengkap" required error={errors.vcardName}>
+          <Field label="Nama Lengkap" required error={showError("vcardName")}>
             <Input
               value={data.vcardName || ""}
               onChange={(e) => update({ vcardName: e.target.value })}
+              onBlur={() => touch("vcardName")}
               placeholder="Budi Santoso"
             />
           </Field>
@@ -270,10 +293,11 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
                 inputMode="tel"
               />
             </Field>
-            <Field label="Email" error={errors.vcardEmail}>
+            <Field label="Email" error={showError("vcardEmail")}>
               <Input
                 value={data.vcardEmail || ""}
                 onChange={(e) => update({ vcardEmail: e.target.value })}
+                onBlur={() => touch("vcardEmail")}
                 placeholder="budi@example.com"
                 inputMode="email"
               />
@@ -299,27 +323,30 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
 
       {type === "location" && (
         <>
-          <Field label="Alamat" error={errors.locationAddress}>
+          <Field label="Alamat" error={showError("locationAddress")}>
             <Textarea
               value={data.locationAddress || ""}
               onChange={(e) => update({ locationAddress: e.target.value })}
+              onBlur={() => touch("locationAddress")}
               placeholder="Jl. Contoh No. 123, Jakarta"
               rows={2}
             />
           </Field>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Latitude" error={errors.locationLat}>
+            <Field label="Latitude" error={showError("locationLat")}>
               <Input
                 value={data.locationLat || ""}
                 onChange={(e) => update({ locationLat: e.target.value })}
+                onBlur={() => touch("locationLat")}
                 placeholder="-6.2088"
                 inputMode="decimal"
               />
             </Field>
-            <Field label="Longitude" error={errors.locationLng}>
+            <Field label="Longitude" error={showError("locationLng")}>
               <Input
                 value={data.locationLng || ""}
                 onChange={(e) => update({ locationLng: e.target.value })}
+                onBlur={() => touch("locationLng")}
                 placeholder="106.8456"
                 inputMode="decimal"
               />
@@ -337,26 +364,29 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
 
       {type === "event" && (
         <>
-          <Field label="Judul Event" required error={errors.eventTitle}>
+          <Field label="Judul Event" required error={showError("eventTitle")}>
             <Input
               value={data.eventTitle || ""}
               onChange={(e) => update({ eventTitle: e.target.value })}
+              onBlur={() => touch("eventTitle")}
               placeholder="Rapat Tahunan 2025"
             />
           </Field>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Waktu Mulai" required error={errors.eventStart}>
+            <Field label="Waktu Mulai" required error={showError("eventStart")}>
               <Input
                 type="datetime-local"
                 value={data.eventStart || ""}
                 onChange={(e) => update({ eventStart: e.target.value })}
+                onBlur={() => touch("eventStart")}
               />
             </Field>
-            <Field label="Waktu Selesai" error={errors.eventEnd}>
+            <Field label="Waktu Selesai" error={showError("eventEnd")}>
               <Input
                 type="datetime-local"
                 value={data.eventEnd || ""}
                 onChange={(e) => update({ eventEnd: e.target.value })}
+                onBlur={() => touch("eventEnd")}
               />
             </Field>
           </div>
@@ -397,10 +427,11 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Nomor Pembayaran" required error={errors.paymentNumber}>
+          <Field label="Nomor Pembayaran" required error={showError("paymentNumber")}>
             <Input
               value={data.paymentNumber || ""}
               onChange={(e) => update({ paymentNumber: e.target.value })}
+              onBlur={() => touch("paymentNumber")}
               placeholder="Nomor virtual account / e-wallet"
               inputMode="numeric"
             />
@@ -424,10 +455,11 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
       )}
 
       {type === "custom" && (
-        <Field label="Konten Custom" required error={errors.customText}>
+        <Field label="Konten Custom" required error={showError("customText")}>
           <Textarea
             value={data.customText || ""}
             onChange={(e) => update({ customText: e.target.value })}
+            onBlur={() => touch("customText")}
             placeholder="Masukkan teks atau URL apa saja..."
             rows={5}
           />

@@ -62,9 +62,22 @@ export async function generateSvgString(
     logoSvg += `<image href="${customization.logoDataUrl}" x="${logoOffset}" y="${logoOffset}" width="${logoSize}" height="${logoSize}"/>`;
   }
 
+  const useGradient = customization.gradientEnabled && customization.gradientColor1 && customization.gradientColor2;
+  const gradId = "qr-grad-dl";
+  const direction = customization.gradientDirection ?? 135;
+  const rad = (direction * Math.PI) / 180;
+  const x2 = (Math.cos(rad) * 0.5 + 0.5) * 100;
+  const y2 = (Math.sin(rad) * 0.5 + 0.5) * 100;
+
+  const fillDef = useGradient
+    ? `<defs><linearGradient id="${gradId}" x1="0%" y1="0%" x2="${x2}%" y2="${y2}%"><stop offset="0%" stop-color="${customization.gradientColor1}"/><stop offset="100%" stop-color="${customization.gradientColor2}"/></linearGradient></defs>`
+    : "";
+  const fillValue = useGradient ? `url(#${gradId})` : customization.fgColor;
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges">
+  ${fillDef}
   <rect width="${size}" height="${size}" fill="${customization.bgColor}"/>
-  <g fill="${customization.fgColor}">${modulesSvg}</g>
+  <g fill="${fillValue}">${modulesSvg}</g>
   ${logoSvg}
 </svg>`;
 

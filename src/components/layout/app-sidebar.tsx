@@ -16,6 +16,7 @@ import {
   Sun,
   Menu,
   Github,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ export interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "generate", label: "Generate QR", icon: QrCode },
+  { id: "batch", label: "Batch Generator", icon: Layers },
   { id: "scanner", label: "Scanner", icon: ScanLine },
   { id: "history", label: "Riwayat", icon: History },
   { id: "favorites", label: "Favorit", icon: Star },

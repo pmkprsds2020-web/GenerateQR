@@ -24,6 +24,14 @@ export interface QrCustomization {
   logoDataUrl?: string;
   logoSize?: number; // percentage 0-40
   pixelShape?: "square" | "dots" | "rounded";
+  gradientEnabled?: boolean;
+  gradientColor1?: string;
+  gradientColor2?: string;
+  gradientDirection?: number; // degrees 0-360
+  frameEnabled?: boolean;
+  frameStyle?: "rounded" | "square" | "circle";
+  frameColor?: string;
+  frameText?: string;
 }
 
 export interface QrRecord {
