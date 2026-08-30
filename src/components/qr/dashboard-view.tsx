@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { QrCode, Calendar, CalendarDays, Star, TrendingUp, Plus, ScanLine, ArrowUpRight, Sparkles, Zap, Activity } from "lucide-react";
+import { QrCode, Calendar, CalendarDays, Star, TrendingUp, Plus, ScanLine, ArrowUpRight, Sparkles, Zap, Activity, Layers, LayoutTemplate } from "lucide-react";
 import { useQrStore } from "@/store/qr-store";
 import { QR_TYPE_LABELS, QR_TYPE_ICONS, type QrType } from "@/lib/qr/qr-types";
 import { ActivityHeatmap } from "./activity-heatmap";
@@ -161,6 +161,52 @@ export function DashboardView() {
           gradient="from-amber-500 to-orange-600"
           subtitle=" Ditandai bintang"
         />
+      </motion.div>
+
+      {/* Quick Actions */}
+      <motion.div variants={itemVariants}>
+        <Card className="card-premium overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+                <Zap className="h-4 w-4 text-primary" />
+              </div>
+              Aksi Cepat
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <QuickAction
+                icon={Plus}
+                label="Buat QR"
+                description="URL, WiFi, vCard"
+                onClick={() => { setEditingId(null); setActiveView("generate"); }}
+                gradient="from-emerald-500 to-teal-600"
+              />
+              <QuickAction
+                icon={ScanLine}
+                label="Scan QR"
+                description="Kamera atau upload"
+                onClick={() => setActiveView("scanner")}
+                gradient="from-sky-500 to-blue-600"
+              />
+              <QuickAction
+                icon={Layers}
+                label="Batch QR"
+                description="Buat banyak sekaligus"
+                onClick={() => setActiveView("batch")}
+                gradient="from-violet-500 to-purple-600"
+              />
+              <QuickAction
+                icon={LayoutTemplate}
+                label="Template"
+                description="Mulai dari template"
+                onClick={() => setActiveView("templates")}
+                gradient="from-amber-500 to-orange-600"
+              />
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* Charts */}
@@ -410,5 +456,34 @@ function EmptyState({
         {actionLabel}
       </Button>
     </div>
+  );
+}
+
+function QuickAction({
+  icon: Icon,
+  label,
+  description,
+  onClick,
+  gradient,
+}: {
+  icon: React.ElementType;
+  label: string;
+  description: string;
+  onClick: () => void;
+  gradient: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="group flex flex-col items-start gap-2 p-3 rounded-xl border bg-card hover:shadow-md hover:border-primary/30 transition-all text-left"
+    >
+      <div className={`flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${gradient} shadow-sm group-hover:scale-110 transition-transform shrink-0`}>
+        <Icon className="h-4 w-4 text-white" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold">{label}</p>
+        <p className="text-xs text-muted-foreground truncate">{description}</p>
+      </div>
+    </button>
   );
 }

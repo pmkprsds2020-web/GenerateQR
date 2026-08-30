@@ -58,6 +58,9 @@ export function HistoryView() {
   const logScan = useQrStore((s) => s.logScan);
   const scanLogs = useQrStore((s) => s.scanLogs);
   const updateTags = useQrStore((s) => s.updateTags);
+  const recentSearches = useQrStore((s) => s.recentSearches);
+  const addRecentSearch = useQrStore((s) => s.addRecentSearch);
+  const clearRecentSearches = useQrStore((s) => s.clearRecentSearches);
 
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
@@ -68,6 +71,23 @@ export function HistoryView() {
   const [previewId, setPreviewId] = React.useState<string | null>(null);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = React.useState(false);
+  const [showRecentSearches, setShowRecentSearches] = React.useState(false);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+  };
+
+  const handleSearchSubmit = () => {
+    if (search.trim()) {
+      addRecentSearch(search.trim());
+      setShowRecentSearches(false);
+    }
+  };
+
+  const handleRecentSearchClick = (query: string) => {
+    setSearch(query);
+    setShowRecentSearches(false);
+  };
 
   // Collect all unique tags from records
   const allTags = React.useMemo(() => {
@@ -263,9 +283,35 @@ export function HistoryView() {
               <Input
                 placeholder="Cari nama atau isi QR..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onFocus={() => setShowRecentSearches(true)}
+                onBlur={() => setTimeout(() => setShowRecentSearches(false), 200)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit()}
                 className="pl-9"
               />
+              {showRecentSearches && recentSearches.length > 0 && !search && (
+                <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-popover border rounded-lg shadow-lg overflow-hidden animate-fade-in">
+                  <div className="flex items-center justify-between px-3 py-2 border-b">
+                    <span className="text-xs font-semibold text-muted-foreground">Pencarian Terbaru</span>
+                    <button
+                      onClick={() => clearRecentSearches()}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                  {recentSearches.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleRecentSearchClick(s)}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors text-left"
+                    >
+                      <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="truncate">{s}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-full sm:w-[180px]">

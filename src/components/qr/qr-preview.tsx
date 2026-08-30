@@ -13,21 +13,30 @@ interface QrPreviewProps {
 
 export function QrPreview({ content, customization, size = 320, className }: QrPreviewProps) {
   const [svg, setSvg] = React.useState<string>("");
+  const [loading, setLoading] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     let cancelled = false;
+    if (!content.trim()) {
+      setSvg("");
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     const timer = setTimeout(() => {
-      if (!content.trim()) {
-        setSvg("");
-        return;
-      }
       generateSvg(content, customization, size)
         .then((s) => {
-          if (!cancelled) setSvg(s);
+          if (!cancelled) {
+            setSvg(s);
+            setLoading(false);
+          }
         })
         .catch(() => {
-          if (!cancelled) setSvg("");
+          if (!cancelled) {
+            setSvg("");
+            setLoading(false);
+          }
         });
     }, 120);
     return () => {
@@ -52,6 +61,21 @@ export function QrPreview({ content, customization, size = 320, className }: QrP
             <path d="M14 14h3v3h-3z M18 18h3v3h-3z" />
           </svg>
           <p className="text-sm mt-2 text-center px-4">Isi data untuk melihat preview QR Code</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading && !svg) {
+    return (
+      <div
+        ref={containerRef}
+        className={className}
+        style={{ width: size, height: size, maxWidth: "100%" }}
+        aria-label="Memuat QR Code"
+      >
+        <div className="w-full h-full rounded-xl bg-muted/30 overflow-hidden relative">
+          <div className="absolute inset-0 shimmer" />
         </div>
       </div>
     );

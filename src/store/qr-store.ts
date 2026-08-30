@@ -27,6 +27,7 @@ interface QrStoreState {
   customTemplates: CustomTemplate[];
   scanLogs: ScanLog[];
   recentTypes: QrType[];
+  recentSearches: string[];
   activeView: string;
   editingId: string | null;
   setType: string | null; // when picking a template
@@ -37,6 +38,8 @@ interface QrStoreState {
   setSetType: (type: string | null) => void;
   setLoadTemplateData: (data: { type: QrType; data: Record<string, unknown>; customization: QrCustomization } | null) => void;
   addRecentType: (type: QrType) => void;
+  addRecentSearch: (query: string) => void;
+  clearRecentSearches: () => void;
 
   saveQr: (record: Omit<QrRecord, "id" | "createdAt" | "updatedAt" | "favorite"> & { id?: string }) => QrRecord;
   deleteQr: (id: string) => void;
@@ -61,6 +64,7 @@ export const useQrStore = create<QrStoreState>()(
       customTemplates: [],
       scanLogs: [],
       recentTypes: [],
+      recentSearches: [],
       activeView: "generate",
       editingId: null,
       setType: null,
@@ -73,6 +77,14 @@ export const useQrStore = create<QrStoreState>()(
       addRecentType: (type) => set((state) => ({
         recentTypes: [type, ...state.recentTypes.filter(t => t !== type)].slice(0, 6),
       })),
+      addRecentSearch: (query) => {
+        const trimmed = query.trim();
+        if (!trimmed) return;
+        set((state) => ({
+          recentSearches: [trimmed, ...state.recentSearches.filter(s => s !== trimmed)].slice(0, 8),
+        }));
+      },
+      clearRecentSearches: () => set({ recentSearches: [] }),
 
       saveQr: (record) => {
         const now = new Date().toISOString();
