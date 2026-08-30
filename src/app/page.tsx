@@ -12,6 +12,7 @@ import { TemplatesView } from "@/components/qr/templates-view";
 import { StatisticsView } from "@/components/qr/statistics-view";
 import { SettingsView } from "@/components/qr/settings-view";
 import { BatchView } from "@/components/qr/batch-view";
+import { CompareView } from "@/components/qr/compare-view";
 import { CommandPalette } from "@/components/qr/command-palette";
 import { OnboardingTour } from "@/components/qr/onboarding-tour";
 import { useQrStore } from "@/store/qr-store";
@@ -36,6 +37,8 @@ function ViewRouter() {
         return <FavoritesView />;
       case "templates":
         return <TemplatesView />;
+      case "compare":
+        return <CompareView />;
       case "statistics":
         return <StatisticsView />;
       case "settings":

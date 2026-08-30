@@ -4,9 +4,10 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { QrCode, Calendar, CalendarDays, Star, TrendingUp, Plus, ScanLine, ArrowUpRight, Sparkles, Zap } from "lucide-react";
+import { QrCode, Calendar, CalendarDays, Star, TrendingUp, Plus, ScanLine, ArrowUpRight, Sparkles, Zap, Activity } from "lucide-react";
 import { useQrStore } from "@/store/qr-store";
 import { QR_TYPE_LABELS, QR_TYPE_ICONS, type QrType } from "@/lib/qr/qr-types";
+import { ActivityHeatmap } from "./activity-heatmap";
 import {
   BarChart,
   Bar,
@@ -242,6 +243,24 @@ export function DashboardView() {
                 </PieChart>
               </ResponsiveContainer>
             )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Activity Heatmap */}
+      <motion.div variants={itemVariants}>
+        <Card className="card-premium overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+                <Activity className="h-4 w-4 text-primary" />
+              </div>
+              Aktivitas QR Code
+            </CardTitle>
+            <CardDescription className="text-xs">Kontribusi aktivitas dalam 20 minggu terakhir</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ActivityHeatmap records={records} weeks={20} />
           </CardContent>
         </Card>
       </motion.div>

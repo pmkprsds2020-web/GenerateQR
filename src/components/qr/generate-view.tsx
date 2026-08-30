@@ -23,6 +23,7 @@ import { generateQrContent, type QrFormData } from "@/lib/qr/qr-content";
 import { validateQrForm } from "@/lib/qr/qr-validation";
 import { useQrStore } from "@/store/qr-store";
 import { toast } from "sonner";
+import { fireConfetti } from "@/lib/qr/confetti";
 import { Sparkles, Settings2, Bookmark } from "lucide-react";
 
 export function GenerateView() {
@@ -93,6 +94,7 @@ export function GenerateView() {
       customization,
     });
     toast.success("✓ QR Code berhasil disimpan");
+    fireConfetti();
     setEditingId(null);
     // Clear name field after save
     setData({ ...data, name: "" });

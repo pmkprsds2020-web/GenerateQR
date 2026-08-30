@@ -17,6 +17,7 @@ import {
   Menu,
   Github,
   Layers,
+  GitCompare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "history", label: "Riwayat", icon: History },
   { id: "favorites", label: "Favorit", icon: Star },
   { id: "templates", label: "Template", icon: LayoutTemplate },
+  { id: "compare", label: "Bandingkan", icon: GitCompare },
   { id: "statistics", label: "Statistik", icon: BarChart3 },
   { id: "settings", label: "Pengaturan", icon: Settings },
 ];

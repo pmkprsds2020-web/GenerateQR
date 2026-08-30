@@ -82,7 +82,7 @@ export function SettingsView() {
       </div>
 
       {/* Appearance */}
-      <Card>
+      <Card className="card-premium">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Sun className="h-4 w-4" />
@@ -109,7 +109,7 @@ export function SettingsView() {
       </Card>
 
       {/* Help & Tour */}
-      <Card>
+      <Card className="card-premium">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <HelpCircle className="h-4 w-4" />
@@ -151,7 +151,7 @@ export function SettingsView() {
       </Card>
 
       {/* Data Management */}
-      <Card>
+      <Card className="card-premium">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Database className="h-4 w-4" />
@@ -195,7 +195,7 @@ export function SettingsView() {
       </Card>
 
       {/* Security info */}
-      <Card>
+      <Card className="card-premium">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -223,7 +223,7 @@ export function SettingsView() {
       </Card>
 
       {/* About */}
-      <Card>
+      <Card className="card-premium">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Info className="h-4 w-4" />

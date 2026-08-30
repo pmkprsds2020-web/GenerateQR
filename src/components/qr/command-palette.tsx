@@ -30,6 +30,7 @@ import {
   Download,
   Search,
   Layers,
+  GitCompare,
 } from "lucide-react";
 import { useQrStore } from "@/store/qr-store";
 import { useTheme } from "next-themes";
@@ -45,6 +46,7 @@ const NAV_COMMANDS = [
   { id: "history", label: "Riwayat", icon: History, group: "Navigasi" },
   { id: "favorites", label: "Favorit", icon: Star, group: "Navigasi" },
   { id: "templates", label: "Template", icon: LayoutTemplate, group: "Navigasi" },
+  { id: "compare", label: "Bandingkan", icon: GitCompare, group: "Navigasi" },
   { id: "statistics", label: "Statistik", icon: BarChart3, group: "Navigasi" },
   { id: "settings", label: "Pengaturan", icon: Settings, group: "Navigasi" },
 ];
