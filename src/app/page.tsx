@@ -15,6 +15,7 @@ import { BatchView } from "@/components/qr/batch-view";
 import { CompareView } from "@/components/qr/compare-view";
 import { CommandPalette } from "@/components/qr/command-palette";
 import { OnboardingTour } from "@/components/qr/onboarding-tour";
+import { KeyboardShortcutsHelp } from "@/components/qr/keyboard-shortcuts-help";
 import { useQrStore } from "@/store/qr-store";
 import { QrCode, Heart } from "lucide-react";
 
@@ -64,6 +65,8 @@ function ViewRouter() {
 }
 
 export default function Home() {
+  const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <div className="flex flex-1">
@@ -89,6 +92,13 @@ export default function Home() {
                   <Heart className="h-3 w-3 text-red-500 fill-red-500" />
                   menggunakan Next.js
                 </div>
+                <button
+                  onClick={() => setShortcutsOpen(true)}
+                  className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono rounded border bg-muted text-muted-foreground hover:bg-accent transition-colors"
+                  title="Keyboard shortcuts"
+                >
+                  ?
+                </button>
                 <kbd className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono rounded border bg-muted text-muted-foreground">
                   ⌘K
                 </kbd>
@@ -99,6 +109,7 @@ export default function Home() {
       </div>
       <CommandPalette />
       <OnboardingTour />
+      <KeyboardShortcutsHelp open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </div>
   );
 }

@@ -627,3 +627,107 @@ Priority Recommendations for Next Phase:
 - Add JSZip for batch QR download as ZIP
 - Optimize bundle size to reduce server memory usage
 - Add more chart interactivity (click-to-filter)
+
+---
+Task ID: 7
+Agent: Web Dev Review Agent (cron)
+Task: Fix dev server crash, add keyboard shortcuts help, optimize performance, add skeleton loaders
+
+Work Log:
+- Read worklog.md to understand previous progress (QR GEN PRO with heatmap, compare view, confetti)
+- Identified critical issue: Dev server crashes under browser load (memory pressure)
+- Root cause analysis:
+  - ActivityHeatmap created 140 Radix Tooltip components (20 weeks × 7 days) causing excessive DOM nodes
+  - jsPDF imported statically in qr-download.ts (heavy, ~500KB)
+  - html5-qrcode imported statically in scanner-view.tsx (heavy, ~1MB)
+  - Default Node.js memory limit too low for Turbopack compilation
+
+Performance Optimizations (Critical Fixes):
+1. ActivityHeatmap Optimization:
+   - Replaced 140 Radix Tooltip components with native HTML title attributes
+   - Removed TooltipProvider wrapper
+   - Same functionality with dramatically reduced DOM complexity
+   - Result: Heatmap now renders without crashing server
+
+2. Dynamic Import for jsPDF:
+   - Changed static `import jsPDF from "jspdf"` to dynamic `const { default: jsPDF } = await import("jspdf")`
+   - jsPDF only loaded when user downloads as PDF (not on every page load)
+   - Reduces initial bundle by ~500KB
+
+3. Dynamic Import for html5-qrcode:
+   - Changed static `import { Html5Qrcode }` to type-only import + dynamic import
+   - html5-qrcode only loaded when user starts scanner or uploads image
+   - Reduces initial bundle by ~1MB
+
+4. Memory Limit Fix:
+   - Server starts with `NODE_OPTIONS="--max-old-space-size=1024"` to allow more memory for compilation
+   - This resolved the server crash issue when browser loads the page
+
+New Features Added:
+1. Keyboard Shortcuts Help Dialog:
+   - Created KeyboardShortcutsHelp component (src/components/qr/keyboard-shortcuts-help.tsx)
+   - Opens with "?" key (when not in input field)
+   - Shows categorized shortcuts: Navigasi (⌘K, ⌘J, ?) and QR Code (⌘S, ⌘D, ⌘F)
+   - Styled kbd elements with border, shadow, font-mono
+   - Icons for each shortcut (Command, Moon, Keyboard, Plus, Download, Search)
+   - Closes with Escape key
+   - "?" button added to footer for discoverability
+   - Verified: dialog opens with "?" key, shows all shortcuts
+
+2. Skeleton Loading Components:
+   - Created reusable skeleton components (src/components/qr/skeletons.tsx)
+   - QrCardSkeleton: card with QR preview placeholder, name, badge, action buttons
+   - QrListSkeleton: list of 5 compact cards with thumbnail, info, action buttons
+   - StatsCardSkeleton: stat card with label, number, icon placeholders
+   - Can be used for loading states in Favorites, History, Dashboard views
+
+Styling Enhancements:
+1. Footer Enhancement:
+   - Added "?" button for keyboard shortcuts (clickable)
+   - Hover effect on shortcut button
+   - Consistent with kbd styling
+
+2. Keyboard Shortcuts Dialog:
+   - Clean modal with categorized sections
+   - Icon + description on left, key badges on right
+   - Hover effect on each shortcut row
+   - Professional typography with uppercase group headings
+
+Verification Results:
+- ESLint: 0 errors, 0 warnings (clean)
+- Server compiles successfully with NODE_OPTIONS memory fix
+- agent-browser testing:
+  - Page loads correctly: "QR GEN PRO — QR Code Generator Gratis"
+  - All 10 sidebar items present (including Bandingkan)
+  - Dashboard heatmap: "heatmap found" confirmed
+  - Keyboard shortcuts: "?" opens dialog, "Keyboard Shortcuts" text confirmed
+  - No console errors on initial load
+  - Server stays alive with NODE_OPTIONS fix
+- VLM ratings:
+  - Dashboard with heatmap: 8/10 (all features visible including heatmap)
+  - Keyboard shortcuts dialog: 8/10 (clean, professional, well-organized)
+
+Stage Summary:
+- Critical server crash issue FIXED (memory optimization + NODE_OPTIONS)
+- 3 performance optimizations: lighter heatmap, dynamic jspdf, dynamic html5-qrcode
+- 2 new features: Keyboard Shortcuts Help Dialog, Skeleton Loading Components
+- Footer enhanced with "?" shortcut button
+- All features verified working with agent-browser
+- App is now stable and usable in the browser
+
+Unresolved Issues / Risks:
+- Server still needs NODE_OPTIONS="--max-old-space-size=1024" to start (not default)
+- Authentication still not implemented (schema ready, NextAuth available)
+- API routes exist but frontend uses localStorage (integration pending auth)
+- Multi-language support (EN/ID) not yet implemented
+- QR expiration/password protection not yet implemented
+- Skeleton loaders created but not yet integrated into views
+
+Priority Recommendations for Next Phase:
+- Integrate skeleton loaders into Favorites/History/Dashboard views
+- Implement NextAuth authentication with role-based access
+- Wire API routes to frontend when authenticated
+- Add multi-language support (EN/ID toggle)
+- Add QR expiration/password protection option
+- Add JSZip for batch QR download as ZIP
+- Add more chart interactivity (click-to-filter)

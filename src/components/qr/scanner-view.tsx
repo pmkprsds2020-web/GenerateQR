@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Html5Qrcode } from "html5-qrcode";
+import type { Html5Qrcode as Html5QrcodeType } from "html5-qrcode";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -23,7 +23,7 @@ export function ScannerView() {
   const [result, setResult] = React.useState<ScanResult | null>(null);
   const [error, setError] = React.useState<string>("");
   const [history, setHistory] = React.useState<ScanResult[]>([]);
-  const scannerRef = React.useRef<Html5Qrcode | null>(null);
+  const scannerRef = React.useRef<Html5QrcodeType | null>(null);
   const containerId = "qr-reader";
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -31,6 +31,7 @@ export function ScannerView() {
     setError("");
     setResult(null);
     try {
+      const { Html5Qrcode } = await import("html5-qrcode");
       const scanner = new Html5Qrcode(containerId, { verbose: false });
       scannerRef.current = scanner;
       await scanner.start(
@@ -85,7 +86,7 @@ export function ScannerView() {
     toast.success("✓ QR Code berhasil dipindai!");
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setError("");
@@ -96,18 +97,23 @@ export function ScannerView() {
       return;
     }
 
-    const scanner = new Html5Qrcode("file-reader", { verbose: false });
-    scanner
-      .scanFile(file, true)
-      .then((text) => {
-        handleScanResult(text);
-      })
-      .catch(() => {
-        setError("Tidak ada QR Code terdeteksi pada gambar. Coba gambar lain yang lebih jelas.");
-      })
-      .finally(() => {
-        scanner.clear().catch(() => {});
-      });
+    try {
+      const { Html5Qrcode } = await import("html5-qrcode");
+      const scanner = new Html5Qrcode("file-reader", { verbose: false });
+      scanner
+        .scanFile(file, true)
+        .then((text) => {
+          handleScanResult(text);
+        })
+        .catch(() => {
+          setError("Tidak ada QR Code terdeteksi pada gambar. Coba gambar lain yang lebih jelas.");
+        })
+        .finally(() => {
+          scanner.clear().catch(() => {});
+        });
+    } catch {
+      setError("Gagal memuat modul scanner.");
+    }
 
     if (fileInputRef.current) fileInputRef.current.value = "";
   };

@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface ActivityHeatmapProps {
@@ -41,7 +40,6 @@ export function ActivityHeatmap({ records, weeks = 20 }: ActivityHeatmapProps) {
     const totalDays = weeks * 7;
     const startDate = new Date(today);
     startDate.setDate(startDate.getDate() - totalDays + 1);
-    // Align to start of week (Sunday)
     startDate.setDate(startDate.getDate() - startDate.getDay());
 
     const countMap = new Map<string, number>();
@@ -76,7 +74,6 @@ export function ActivityHeatmap({ records, weeks = 20 }: ActivityHeatmapProps) {
     }).length;
   }, [records, weeks]);
 
-  // Month labels
   const monthLabels = React.useMemo(() => {
     const labels: { month: string; col: number }[] = [];
     let lastMonth = -1;
@@ -92,7 +89,6 @@ export function ActivityHeatmap({ records, weeks = 20 }: ActivityHeatmapProps) {
   }, [cells]);
 
   return (
-    <TooltipProvider delayDuration={200}>
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
@@ -132,30 +128,21 @@ export function ActivityHeatmap({ records, weeks = 20 }: ActivityHeatmapProps) {
                 </div>
               ))}
             </div>
-            {/* Cells */}
+            {/* Cells - using native title for tooltip (lighter than Radix Tooltip) */}
             {cells.map((week, col) => (
               <div key={col} className="flex flex-col gap-1">
                 {week.map((cell, row) => {
                   const isFuture = cell.date > new Date();
+                  const title = `${cell.date.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} — ${cell.count > 0 ? `${cell.count} QR Code` : "Tidak ada aktivitas"}`;
                   return (
-                    <Tooltip key={row}>
-                      <TooltipTrigger asChild>
-                        <div
-                          className={cn(
-                            "h-3 w-3 rounded-sm transition-all hover:ring-1 hover:ring-ring cursor-default",
-                            isFuture ? "opacity-0" : LEVEL_COLORS[cell.level]
-                          )}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs">
-                        <p className="font-medium">
-                          {cell.date.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
-                        </p>
-                        <p className="text-muted-foreground">
-                          {cell.count > 0 ? `${cell.count} QR Code` : "Tidak ada aktivitas"}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <div
+                      key={row}
+                      title={title}
+                      className={cn(
+                        "h-3 w-3 rounded-sm transition-all hover:ring-1 hover:ring-ring cursor-default",
+                        isFuture ? "opacity-0" : LEVEL_COLORS[cell.level]
+                      )}
+                    />
                   );
                 })}
               </div>
@@ -164,6 +151,5 @@ export function ActivityHeatmap({ records, weeks = 20 }: ActivityHeatmapProps) {
         </div>
       </div>
     </div>
-    </TooltipProvider>
   );
 }

@@ -1,6 +1,5 @@
 // QR Code download utilities: PNG, JPG, SVG, PDF
 import QRCode from "qrcode";
-import jsPDF from "jspdf";
 import type { QrCustomization } from "./qr-types";
 
 export type DownloadFormat = "png" | "jpg" | "svg" | "pdf";
@@ -192,6 +191,7 @@ export async function downloadQrCode(opts: DownloadOptions): Promise<void> {
   }
 
   if (format === "pdf") {
+    const { default: jsPDF } = await import("jspdf");
     const pdf = new jsPDF({
       orientation: "square",
       unit: "mm",
