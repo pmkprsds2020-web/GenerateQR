@@ -143,6 +143,42 @@ export function StatisticsView() {
         </Card>
       </div>
 
+      {/* Quick Insights Banner */}
+      {total > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium text-muted-foreground">QR Code Terpopuler</span>
+            </div>
+            <p className="text-sm font-bold truncate">
+              {byType.length > 0 ? `${QR_TYPE_ICONS[byType[0].type as QrType]} ${byType[0].label}` : "—"}
+            </p>
+            <p className="text-xs text-muted-foreground">{byType.length > 0 ? `${byType[0].count} dibuat` : ""}</p>
+          </div>
+          <div className="rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Zap className="h-4 w-4 text-emerald-600" />
+              <span className="text-xs font-medium text-muted-foreground">Scan Rate</span>
+            </div>
+            <p className="text-sm font-bold">
+              {total > 0 ? `${(totalScans / total).toFixed(1)}x` : "—"}
+            </p>
+            <p className="text-xs text-muted-foreground">rata-rata scan per QR</p>
+          </div>
+          <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-amber-500/5 p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Calendar className="h-4 w-4 text-amber-600" />
+              <span className="text-xs font-medium text-muted-foreground">Favorit Rate</span>
+            </div>
+            <p className="text-sm font-bold">
+              {total > 0 ? `${((favorites / total) * 100).toFixed(0)}%` : "—"}
+            </p>
+            <p className="text-xs text-muted-foreground">{favorites} dari {total} QR ditandai</p>
+          </div>
+        </div>
+      )}
+
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
