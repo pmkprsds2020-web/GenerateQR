@@ -14,16 +14,27 @@ export interface CustomTemplate {
   createdAt: string;
 }
 
+export interface ScanLog {
+  id: string;
+  qrId: string;
+  qrName: string;
+  qrType: QrType;
+  timestamp: string;
+}
+
 interface QrStoreState {
   records: QrRecord[];
   customTemplates: CustomTemplate[];
+  scanLogs: ScanLog[];
   activeView: string;
   editingId: string | null;
   setType: string | null; // when picking a template
+  loadTemplateData: { type: QrType; data: Record<string, unknown>; customization: QrCustomization } | null;
 
   setActiveView: (view: string) => void;
   setEditingId: (id: string | null) => void;
   setSetType: (type: string | null) => void;
+  setLoadTemplateData: (data: { type: QrType; data: Record<string, unknown>; customization: QrCustomization } | null) => void;
 
   saveQr: (record: Omit<QrRecord, "id" | "createdAt" | "updatedAt" | "favorite"> & { id?: string }) => QrRecord;
   deleteQr: (id: string) => void;
@@ -34,6 +45,9 @@ interface QrStoreState {
   saveCustomTemplate: (tpl: Omit<CustomTemplate, "id" | "createdAt">) => CustomTemplate;
   deleteCustomTemplate: (id: string) => void;
 
+  logScan: (qrId: string, qrName: string, qrType: QrType) => void;
+  clearScanLogs: () => void;
+
   clearHistory: () => void;
 }
 
@@ -42,13 +56,16 @@ export const useQrStore = create<QrStoreState>()(
     (set, get) => ({
       records: [],
       customTemplates: [],
+      scanLogs: [],
       activeView: "generate",
       editingId: null,
       setType: null,
+      loadTemplateData: null,
 
       setActiveView: (view) => set({ activeView: view }),
       setEditingId: (id) => set({ editingId: id }),
       setSetType: (type) => set({ setType: type }),
+      setLoadTemplateData: (data) => set({ loadTemplateData: data }),
 
       saveQr: (record) => {
         const now = new Date().toISOString();
@@ -120,6 +137,19 @@ export const useQrStore = create<QrStoreState>()(
       deleteCustomTemplate: (id) => {
         set((state) => ({ customTemplates: state.customTemplates.filter((t) => t.id !== id) }));
       },
+
+      logScan: (qrId, qrName, qrType) => {
+        const log: ScanLog = {
+          id: `scan_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+          qrId,
+          qrName,
+          qrType,
+          timestamp: new Date().toISOString(),
+        };
+        set((state) => ({ scanLogs: [log, ...state.scanLogs].slice(0, 500) }));
+      },
+
+      clearScanLogs: () => set({ scanLogs: [] }),
 
       clearHistory: () => set({ records: [] }),
     }),

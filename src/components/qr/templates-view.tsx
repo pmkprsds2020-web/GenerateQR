@@ -23,6 +23,7 @@ export function TemplatesView() {
   const setActiveView = useQrStore((s) => s.setActiveView);
   const setSetType = useQrStore((s) => s.setSetType);
   const setEditingId = useQrStore((s) => s.setEditingId);
+  const setLoadTemplateData = useQrStore((s) => s.setLoadTemplateData);
   const customTemplates = useQrStore((s) => s.customTemplates);
   const deleteCustomTemplate = useQrStore((s) => s.deleteCustomTemplate);
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
@@ -35,13 +36,16 @@ export function TemplatesView() {
   };
 
   const handleSelectCustom = (tplId: string) => {
-    // For custom templates, we'd need to load the data. For now, just set the type.
     const tpl = customTemplates.find((t) => t.id === tplId);
     if (tpl) {
       setEditingId(null);
-      setSetType(tpl.type);
+      setLoadTemplateData({
+        type: tpl.type,
+        data: tpl.data,
+        customization: tpl.customization,
+      });
       setActiveView("generate");
-      toast.info(`Template "${tpl.name}" dipilih`);
+      toast.info(`Template "${tpl.name}" dimuat`);
     }
   };
 

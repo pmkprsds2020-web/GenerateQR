@@ -37,6 +37,8 @@ export function GenerateView() {
   const records = useQrStore((s) => s.records);
   const setSetType = useQrStore((s) => s.setSetType);
   const setTypeFromStore = useQrStore((s) => s.setType);
+  const loadTemplateData = useQrStore((s) => s.loadTemplateData);
+  const setLoadTemplateData = useQrStore((s) => s.setLoadTemplateData);
   const [templateDialogOpen, setTemplateDialogOpen] = React.useState(false);
   const [templateName, setTemplateName] = React.useState("");
 
@@ -62,6 +64,16 @@ export function GenerateView() {
       setCustomization(DEFAULT_CUSTOMIZATION);
     }
   }, [setTypeFromStore, setSetType]);
+
+  // Load from custom template (pre-fill form data)
+  React.useEffect(() => {
+    if (loadTemplateData) {
+      setType(loadTemplateData.type);
+      setData(loadTemplateData.data as QrFormData);
+      setCustomization(loadTemplateData.customization);
+      setLoadTemplateData(null);
+    }
+  }, [loadTemplateData, setLoadTemplateData]);
 
   const errors = React.useMemo(() => validateQrForm(type, data).errors, [type, data]);
   const content = React.useMemo(() => generateQrContent(type, data), [type, data]);

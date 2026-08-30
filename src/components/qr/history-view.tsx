@@ -36,7 +36,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Search, Star, Eye, Pencil, Copy, Trash2, Download, ChevronLeft, ChevronRight, History as HistoryIcon, Plus, FileSpreadsheet } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, Star, Eye, Pencil, Copy, Trash2, Download, ChevronLeft, ChevronRight, History as HistoryIcon, Plus, FileSpreadsheet, BarChart3 } from "lucide-react";
 import { useQrStore } from "@/store/qr-store";
 import { QR_TYPE_LABELS, QR_TYPE_ICONS, type QrType } from "@/lib/qr/qr-types";
 import { QrPreview } from "./qr-preview";
@@ -52,6 +53,8 @@ export function HistoryView() {
   const toggleFavorite = useQrStore((s) => s.toggleFavorite);
   const setActiveView = useQrStore((s) => s.setActiveView);
   const setEditingId = useQrStore((s) => s.setEditingId);
+  const logScan = useQrStore((s) => s.logScan);
+  const scanLogs = useQrStore((s) => s.scanLogs);
 
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
@@ -59,6 +62,32 @@ export function HistoryView() {
   const [page, setPage] = React.useState(1);
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const [previewId, setPreviewId] = React.useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = React.useState(false);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === pageItems.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(pageItems.map((r) => r.id)));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    selectedIds.forEach((id) => deleteQr(id));
+    toast.success(`✓ ${selectedIds.size} QR Code berhasil dihapus`);
+    setSelectedIds(new Set());
+    setBulkDeleteOpen(false);
+  };
 
   const filtered = React.useMemo(() => {
     let list = records;
@@ -121,6 +150,13 @@ export function HistoryView() {
   const handleEdit = (id: string) => {
     setEditingId(id);
     setActiveView("generate");
+  };
+
+  const getScanCount = (qrId: string) => scanLogs.filter((s) => s.qrId === qrId).length;
+
+  const handleLogScan = (qrId: string, name: string, type: QrType) => {
+    logScan(qrId, name, type);
+    toast.success("✓ Scan tercatat");
   };
 
   const handleExportCSV = () => {
@@ -234,9 +270,33 @@ export function HistoryView() {
             <>
               {/* Desktop table */}
               <div className="hidden md:block">
+                {selectedIds.size > 0 && (
+                  <div className="mb-3 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 p-3 animate-fade-in">
+                    <div className="flex items-center gap-2">
+                      <Checkbox checked={true} onCheckedChange={toggleSelectAll} />
+                      <span className="text-sm font-medium">{selectedIds.size} dipilih</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>
+                        Batal
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)}>
+                        <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                        Hapus Terpilih
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">
+                        <Checkbox
+                          checked={pageItems.length > 0 && selectedIds.size === pageItems.length}
+                          onCheckedChange={toggleSelectAll}
+                          aria-label="Pilih semua"
+                        />
+                      </TableHead>
                       <TableHead className="w-12">No</TableHead>
                       <TableHead>Nama</TableHead>
                       <TableHead>Jenis</TableHead>
@@ -247,7 +307,14 @@ export function HistoryView() {
                   </TableHeader>
                   <TableBody>
                     {pageItems.map((r, i) => (
-                      <TableRow key={r.id}>
+                      <TableRow key={r.id} className={selectedIds.has(r.id) ? "bg-primary/5" : ""}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedIds.has(r.id)}
+                            onCheckedChange={() => toggleSelect(r.id)}
+                            aria-label={`Pilih ${r.name}`}
+                          />
+                        </TableCell>
                         <TableCell className="text-muted-foreground text-xs">
                           {(currentPage - 1) * PAGE_SIZE + i + 1}
                         </TableCell>
@@ -256,9 +323,17 @@ export function HistoryView() {
                             <span className="text-lg">{QR_TYPE_ICONS[r.type]}</span>
                             <div className="min-w-0">
                               <p className="font-medium text-sm truncate max-w-[180px]">{r.name}</p>
-                              {r.favorite && (
-                                <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                              )}
+                              <div className="flex items-center gap-1.5">
+                                {r.favorite && (
+                                  <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                                )}
+                                {getScanCount(r.id) > 0 && (
+                                  <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 gap-0.5">
+                                    <BarChart3 className="h-2.5 w-2.5" />
+                                    {getScanCount(r.id)}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </TableCell>
@@ -402,17 +477,28 @@ export function HistoryView() {
                   <span className="text-muted-foreground">Jenis:</span>
                   <Badge variant="secondary">{QR_TYPE_LABELS[previewRecord.type]}</Badge>
                 </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    <BarChart3 className="h-3.5 w-3.5" />
+                    Total Scan:
+                  </span>
+                  <Badge variant="outline" className="font-mono">{getScanCount(previewRecord.id)}</Badge>
+                </div>
                 <div className="rounded-md bg-muted/50 p-2 text-xs font-mono break-all max-h-32 overflow-y-auto">
                   {previewRecord.content}
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1" onClick={() => handleDownload(previewRecord)}>
-                  <Download className="h-3.5 w-3.5 mr-1.5" />
+              <div className="grid grid-cols-3 gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleDownload(previewRecord)}>
+                  <Download className="h-3.5 w-3.5 mr-1" />
                   Download
                 </Button>
-                <Button size="sm" className="flex-1" onClick={() => { setPreviewId(null); handleEdit(previewRecord.id); }}>
-                  <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                <Button variant="outline" size="sm" onClick={() => handleLogScan(previewRecord.id, previewRecord.name, previewRecord.type)}>
+                  <BarChart3 className="h-3.5 w-3.5 mr-1" />
+                  Scan
+                </Button>
+                <Button size="sm" onClick={() => { setPreviewId(null); handleEdit(previewRecord.id); }}>
+                  <Pencil className="h-3.5 w-3.5 mr-1" />
                   Edit
                 </Button>
               </div>
@@ -420,6 +506,27 @@ export function HistoryView() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Bulk delete confirmation */}
+      <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus {selectedIds.size} QR Code?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tindakan ini akan menghapus {selectedIds.size} QR Code terpilih secara permanen. Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleBulkDelete}
+            >
+              Hapus Semua
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

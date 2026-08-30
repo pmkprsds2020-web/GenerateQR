@@ -411,3 +411,116 @@ Priority Recommendations for Next Phase:
 - Add QR code analytics (scan tracking)
 - Add multi-language support (EN/ID toggle)
 - Add more chart interactivity in statistics
+
+---
+Task ID: 5
+Agent: Web Dev Review Agent (cron)
+Task: Bug fix (template pre-fill), QR Analytics, Bulk delete, Favorites view toggle, Statistics enhancements
+
+Work Log:
+- Read worklog.md to understand previous progress (QR GEN PRO with frame, CSV export, onboarding, custom templates)
+- Performed comprehensive QA testing with agent-browser:
+  - All 9 views load correctly
+  - No runtime errors, no console errors
+  - ESLint: 0 errors, 0 warnings
+  - Identified bug: Custom template selection didn't pre-fill form data (only set type)
+
+Bug Fixes:
+1. Custom Template Pre-fill Bug (FIXED):
+   - Added `loadTemplateData` field to Zustand store (type, data, customization)
+   - Added `setLoadTemplateData` method to store
+   - Updated TemplatesView `handleSelectCustom` to pass full template data
+   - Added new useEffect in GenerateView to load template data (type + data + customization)
+   - Verified: custom template now pre-fills form fields (name, URL, etc.)
+
+New Features:
+1. QR Analytics / Scan Tracking:
+   - Added `ScanLog` interface to store (id, qrId, qrName, qrType, timestamp)
+   - Added `scanLogs` array (max 500 entries) to store
+   - Added `logScan` and `clearScanLogs` methods
+   - Added "Scan" button in History preview dialog
+   - Added scan count display in preview dialog ("Total Scan: X")
+   - Added scan count badge in history table rows
+   - Updated Statistics view with:
+     - "Total Scan" card with today's count
+     - "QR Paling Sering Dipindai" section (Top 5 most scanned)
+     - Progress bars showing relative scan counts
+     - Empty state with guidance
+   - Verified: 4 scans logged, statistics shows "Total Scan: 4", most scanned shows "Analytics Test 2 - 4x"
+
+2. Bulk Delete with Selection in History:
+   - Added checkbox column to history table (select all + individual)
+   - Bulk action bar appears when items selected (shows count, Cancel, Delete buttons)
+   - Selected rows highlighted with primary/5 background
+   - Bulk delete confirmation dialog
+   - `handleBulkDelete` deletes all selected records
+   - Verified: checkboxes present, bulk bar shows "dipilih", confirmation works
+
+3. Favorites View Grid/List Toggle:
+   - Added viewMode state (grid | list)
+   - ToggleGroup in header with LayoutGrid and List icons
+   - Grid view: card layout with QR preview, badges, action buttons
+   - List view: compact horizontal rows with thumbnail, info, action icons
+   - Framer Motion animations for both views (scale-in for grid, slide-in for list)
+   - Premium card styling with gradient backgrounds
+   - Verified: VLM confirmed "single compact list item (horizontal row)" in list mode
+
+Styling Enhancements:
+1. Statistics View:
+   - All summary cards use `card-premium` class with hover effects
+   - Icons in each card header with color coding
+   - `tabular-nums` for number alignment
+   - "Total Scan" card shows today's count below main number
+   - "Most Scanned" section with rank badges, progress bars, type icons
+
+2. History View:
+   - Bulk action bar with primary/5 background and border
+   - Selected rows highlighted
+   - Scan count badge with BarChart3 icon
+   - Checkbox styling consistent with theme
+
+3. Favorites View:
+   - Enhanced header with category label and uppercase tracking
+   - Gradient backgrounds for QR preview areas
+   - Border decorations on preview containers
+   - Staggered entrance animations
+
+Verification Results:
+- ESLint: 0 errors, 0 warnings (clean)
+- Dev log: all 200 responses, no errors
+- agent-browser testing:
+  - Custom template pre-fill: form fields populated correctly after selecting template
+  - Scan tracking: 4 scans logged, count displays in preview and statistics
+  - Bulk select: checkboxes work, bulk bar appears, selection count updates
+  - Favorites list view: compact horizontal layout confirmed by VLM
+  - No console errors
+- VLM ratings:
+  - Statistics view: 6/10 (limited by single data point, but UI is clean)
+  - Favorites list view: confirmed compact horizontal row layout
+
+Stage Summary:
+- 1 bug fixed (custom template pre-fill)
+- 3 new features added: QR Analytics, Bulk Delete, Favorites View Toggle
+- Statistics view significantly enhanced with scan analytics
+- History view supports bulk operations
+- Favorites view supports both grid and list layouts
+- All features verified working with agent-browser
+- No bugs introduced, lint clean
+
+Unresolved Issues / Risks:
+- Authentication still not implemented (schema ready, NextAuth available)
+- API routes exist but frontend uses localStorage (integration pending auth)
+- Multi-language support (EN/ID) not yet implemented
+- QR Code comparison/diff view not yet implemented
+- Dashboard activity heatmap not yet implemented
+- Scan tracking is manual (click "Scan" button) - could be automatic with real backend
+
+Priority Recommendations for Next Phase:
+- Implement NextAuth authentication with role-based access
+- Wire API routes to frontend when authenticated
+- Add multi-language support (EN/ID toggle)
+- Add QR Code comparison view (side-by-side diff)
+- Add dashboard activity heatmap (GitHub-style)
+- Add automatic scan tracking via backend redirect
+- Add JSZip for batch QR download as ZIP
+- Add more chart interactivity (click-to-filter)
