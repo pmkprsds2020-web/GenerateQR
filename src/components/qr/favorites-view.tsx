@@ -10,6 +10,7 @@ import { Star, Download, Pencil, Trash2, Eye, Star as StarIcon, Plus, LayoutGrid
 import { useQrStore } from "@/store/qr-store";
 import { QR_TYPE_LABELS, QR_TYPE_ICONS } from "@/lib/qr/qr-types";
 import { QrPreview } from "./qr-preview";
+import { EmptyState } from "./empty-state";
 import { downloadQrCode } from "@/lib/qr/qr-download";
 import {
   Dialog,
@@ -66,20 +67,16 @@ export function FavoritesView() {
       </motion.div>
 
       {favorites.length === 0 ? (
-        <Card>
-          <CardContent className="py-16">
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10 mb-3">
-                <Star className="h-7 w-7 text-amber-500" />
-              </div>
-              <p className="text-sm font-medium">Belum ada QR favorit</p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                Tandai QR Code dengan bintang untuk menyimpannya di favorit
-              </p>
-              <Button size="sm" className="mt-4" onClick={() => setActiveView("history")}>
-                Lihat Riwayat
-              </Button>
-            </div>
+        <Card className="card-premium">
+          <CardContent className="py-8">
+            <EmptyState
+              icon={Star}
+              title="Belum ada QR favorit"
+              description="Tandai QR Code dengan bintang untuk menyimpannya di favorit dan akses dengan cepat"
+              actionLabel="Lihat Riwayat"
+              onAction={() => setActiveView("history")}
+              variant="favorite"
+            />
           </CardContent>
         </Card>
       ) : viewMode === "grid" ? (

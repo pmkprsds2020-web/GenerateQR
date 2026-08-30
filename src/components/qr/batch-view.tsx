@@ -101,24 +101,52 @@ export function BatchView() {
       toast.warning("Tidak ada QR Code valid untuk diunduh.");
       return;
     }
-    toast.info(`Mengunduh ${validItems.length} QR Code...`);
-    for (let i = 0; i < validItems.length; i++) {
-      const item = validItems[i];
-      setTimeout(async () => {
+    toast.info(`Mengunduh ${validItems.length} QR Code sebagai ZIP...`);
+    try {
+      const JSZip = (await import("jszip")).default;
+      const zip = new JSZip();
+      const { generateSvgString } = await import("@/lib/qr/qr-download");
+
+      for (let i = 0; i < validItems.length; i++) {
+        const item = validItems[i];
         try {
-          await downloadQrCode({
-            format: "png",
-            size: 512,
-            content: item.content,
-            customization,
-            filename: item.name || `qr-${i + 1}`,
-          });
+          const svg = await generateSvgString(item.content, customization, 512);
+          const svgBlob = new Blob([svg], { type: "image/svg+xml" });
+          const svgText = await svgBlob.text();
+          zip.file(`${item.name || `qr-${i + 1}`}.svg`, svgText);
         } catch {
           // ignore individual errors
         }
-      }, i * 300);
+      }
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `qr-batch-${new Date().toISOString().slice(0, 10)}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`✓ ${validItems.length} QR Code berhasil diunduh sebagai ZIP`);
+    } catch {
+      toast.error("Gagal membuat ZIP. Mencoba unduh individual...");
+      // Fallback to sequential download
+      for (let i = 0; i < validItems.length; i++) {
+        const item = validItems[i];
+        setTimeout(async () => {
+          try {
+            await downloadQrCode({
+              format: "png",
+              size: 512,
+              content: item.content,
+              customization,
+              filename: item.name || `qr-${i + 1}`,
+            });
+          } catch {
+            // ignore
+          }
+        }, i * 300);
+      }
     }
-    setTimeout(() => toast.success("✓ Semua QR Code berhasil diunduh."), validItems.length * 300 + 500);
   };
 
   const handleSaveAll = () => {

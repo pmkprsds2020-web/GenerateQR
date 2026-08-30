@@ -37,11 +37,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Star, Eye, Pencil, Copy, Trash2, Download, ChevronLeft, ChevronRight, History as HistoryIcon, Plus, FileSpreadsheet, BarChart3, Tag, X } from "lucide-react";
+import { Search, Star, Eye, Pencil, Copy, Trash2, Download, ChevronLeft, ChevronRight, History as HistoryIcon, Plus, FileSpreadsheet, BarChart3, Tag, X, Archive } from "lucide-react";
 import { useQrStore } from "@/store/qr-store";
 import { QR_TYPE_LABELS, QR_TYPE_ICONS, type QrType } from "@/lib/qr/qr-types";
 import { QrPreview } from "./qr-preview";
 import { TagInput } from "./tag-input";
+import { EmptyState } from "./empty-state";
 import { downloadQrCode } from "@/lib/qr/qr-download";
 import { toast } from "sonner";
 
@@ -61,11 +62,19 @@ export function HistoryView() {
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
   const [dateFilter, setDateFilter] = React.useState<string>("all");
+  const [tagFilter, setTagFilter] = React.useState<string>("all");
   const [page, setPage] = React.useState(1);
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const [previewId, setPreviewId] = React.useState<string | null>(null);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = React.useState(false);
+
+  // Collect all unique tags from records
+  const allTags = React.useMemo(() => {
+    const tagSet = new Set<string>();
+    records.forEach((r) => r.tags?.forEach((t) => tagSet.add(t)));
+    return Array.from(tagSet).sort();
+  }, [records]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -91,6 +100,38 @@ export function HistoryView() {
     setBulkDeleteOpen(false);
   };
 
+  const handleBulkDownloadZip = async () => {
+    const selected = records.filter((r) => selectedIds.has(r.id));
+    if (selected.length === 0) return;
+    toast.info(`Mengunduh ${selected.length} QR Code sebagai ZIP...`);
+    try {
+      const JSZip = (await import("jszip")).default;
+      const zip = new JSZip();
+      const { generateSvgString } = await import("@/lib/qr/qr-download");
+
+      for (let i = 0; i < selected.length; i++) {
+        const r = selected[i];
+        try {
+          const svg = await generateSvgString(r.content, r.customization, 512);
+          zip.file(`${r.name || `qr-${i + 1}`}.svg`, svg);
+        } catch {
+          // ignore
+        }
+      }
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `qr-selected-${new Date().toISOString().slice(0, 10)}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`✓ ${selected.length} QR Code berhasil diunduh sebagai ZIP`);
+    } catch {
+      toast.error("Gagal membuat ZIP.");
+    }
+  };
+
   const filtered = React.useMemo(() => {
     let list = records;
     if (search) {
@@ -101,6 +142,9 @@ export function HistoryView() {
     }
     if (typeFilter !== "all") {
       list = list.filter((r) => r.type === typeFilter);
+    }
+    if (tagFilter !== "all") {
+      list = list.filter((r) => r.tags?.includes(tagFilter));
     }
     if (dateFilter !== "all") {
       const now = new Date();
@@ -117,7 +161,7 @@ export function HistoryView() {
       });
     }
     return list;
-  }, [records, search, typeFilter, dateFilter]);
+  }, [records, search, typeFilter, tagFilter, dateFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -125,7 +169,7 @@ export function HistoryView() {
 
   React.useEffect(() => {
     setPage(1);
-  }, [search, typeFilter, dateFilter]);
+  }, [search, typeFilter, tagFilter, dateFilter]);
 
   const previewRecord = previewId ? records.find((r) => r.id === previewId) : null;
 
@@ -234,6 +278,22 @@ export function HistoryView() {
                 ))}
               </SelectContent>
             </Select>
+            {allTags.length > 0 && (
+              <Select value={tagFilter} onValueChange={setTagFilter}>
+                <SelectTrigger className="w-full sm:w-[140px]">
+                  <div className="flex items-center gap-1.5">
+                    <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                    <SelectValue placeholder="Semua Tag" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Tag</SelectItem>
+                  {allTags.map((tag) => (
+                    <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <Select value={dateFilter} onValueChange={setDateFilter}>
               <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder="Semua Tanggal" />
@@ -249,25 +309,16 @@ export function HistoryView() {
         </CardHeader>
         <CardContent>
           {pageItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-3">
-                <HistoryIcon className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <p className="text-sm font-medium">
-                {records.length === 0 ? "Belum ada QR Code" : "Tidak ada hasil ditemukan"}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {records.length === 0
-                  ? "QR Code yang Anda buat akan tersimpan di sini"
-                  : "Coba ubah kata kunci atau filter"}
-              </p>
-              {records.length === 0 && (
-                <Button size="sm" className="mt-4" onClick={() => setActiveView("generate")}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Buat QR Code
-                </Button>
-              )}
-            </div>
+            <EmptyState
+              icon={HistoryIcon}
+              title={records.length === 0 ? "Belum ada QR Code" : "Tidak ada hasil ditemukan"}
+              description={records.length === 0
+                ? "QR Code yang Anda buat akan tersimpan di sini secara otomatis"
+                : "Coba ubah kata kunci atau filter untuk menemukan yang Anda cari"}
+              actionLabel={records.length === 0 ? "Buat QR Code" : undefined}
+              onAction={records.length === 0 ? () => setActiveView("generate") : undefined}
+              variant={records.length === 0 ? "default" : "search"}
+            />
           ) : (
             <>
               {/* Desktop table */}
@@ -279,6 +330,10 @@ export function HistoryView() {
                       <span className="text-sm font-medium">{selectedIds.size} dipilih</span>
                     </div>
                     <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={handleBulkDownloadZip}>
+                        <Archive className="h-3.5 w-3.5 mr-1.5" />
+                        Download ZIP
+                      </Button>
                       <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>
                         Batal
                       </Button>

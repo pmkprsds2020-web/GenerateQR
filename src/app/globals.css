@@ -173,6 +173,32 @@
     color: transparent;
   }
 
+  /* Title gradient - more prominent for page headers */
+  .title-gradient {
+    background: linear-gradient(135deg, var(--primary), oklch(0.5 0.18 200));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    display: inline-block;
+  }
+  .dark .title-gradient {
+    background: linear-gradient(135deg, oklch(0.75 0.15 160), oklch(0.7 0.18 200));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* Section label badge */
+  .section-label {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary;
+  }
+  .section-label::before {
+    content: "";
+    @apply h-1 w-1 rounded-full bg-primary;
+  }
+
   /* Glass morphism */
   .glass {
     background: oklch(1 0 0 / 0.7);

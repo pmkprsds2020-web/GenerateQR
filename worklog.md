@@ -934,3 +934,102 @@ Priority Recommendations for Next Phase:
 - Add QR expiration/password protection option
 - Add JSZip for batch QR download as ZIP
 - Add more chart interactivity (click-to-filter)
+
+---
+Task ID: 10
+Agent: Web Dev Review Agent (cron)
+Task: Tag filter, ZIP download, EmptyState component, CSS utilities
+
+Work Log:
+- Read worklog.md to understand previous progress (code splitting, animated numbers, tags system)
+- ESLint: 0 errors, 0 warnings (clean)
+- Server verified rendering correctly via curl: "QR GEN PRO", "Buat QR Code", "Bandingkan"
+
+New Features Added:
+1. Tag Filter in History View:
+   - Added `tagFilter` state to History view
+   - Added `allTags` useMemo that collects unique tags from all records
+   - Tag filter dropdown appears only when tags exist (conditional rendering)
+   - Shows Tag icon in the select trigger for visual consistency
+   - Filters records by selected tag
+   - Page resets to 1 when tag filter changes
+   - Integrated with existing search/type/date filters
+
+2. Batch Download as ZIP (JSZip):
+   - Installed jszip package
+   - Updated BatchView `handleDownloadAll` to create ZIP file:
+     - Dynamically imports JSZip and generateSvgString
+     - Generates SVG for each valid QR code
+     - Adds each SVG to ZIP with filename
+     - Downloads as `qr-batch-YYYY-MM-DD.zip`
+     - Fallback to sequential PNG download if ZIP fails
+   - Added "Download Selected as ZIP" in History bulk action bar:
+     - `handleBulkDownloadZip` function
+     - Downloads selected QR codes as SVG files in a ZIP
+     - Archive icon in button
+     - Filename: `qr-selected-YYYY-MM-DD.zip`
+
+3. EmptyState Component (reusable):
+   - Created src/components/qr/empty-state.tsx
+   - Animated entrance with Framer Motion (scale + fade)
+   - 4 variants with different gradient colors: default, search, favorite, history
+   - Decorative elements: dashed ring, floating dots with pulse animation
+   - Icon in gradient container with border
+   - Title, description, optional action button
+   - Integrated into History view (replaces inline empty state)
+   - Integrated into Favorites view (replaces inline empty state)
+   - Integrated into Compare view (replaces inline empty state)
+
+Styling Enhancements:
+1. CSS Utilities:
+   - `.title-gradient`: prominent gradient text for page titles
+     - Uses primary color to blue gradient in light mode
+     - Emerald to blue gradient in dark mode
+   - `.section-label`: uppercase tracking-wider text with dot prefix
+     - Inline flex with gap
+     - Primary color with small rounded dot before text
+
+2. Empty States:
+   - Consistent design across History, Favorites, Compare views
+   - Larger icon container (20x20 = h-20 w-20)
+   - Animated dashed ring decoration
+   - Floating dots with staggered pulse animation
+   - Gradient backgrounds matching view context
+
+3. Bulk Action Bar:
+   - Added "Download ZIP" button with Archive icon
+   - Consistent button styling
+
+Verification Results:
+- ESLint: 0 errors, 0 warnings (clean)
+- Page renders correctly via curl:
+  - "QR GEN PRO" title present
+  - "Buat QR Code" heading present
+  - "Bandingkan" sidebar item present
+- Server compiles and serves requests successfully
+- All new components properly imported
+
+Stage Summary:
+- 3 new features: Tag filter, ZIP batch download, EmptyState component
+- 2 CSS utilities: title-gradient, section-label
+- 3 views updated with reusable EmptyState (History, Favorites, Compare)
+- Batch download now produces ZIP files instead of sequential individual downloads
+- History view supports tag filtering with dropdown
+- All code verified via lint (0 errors) and curl rendering
+
+Unresolved Issues / Risks:
+- Server still crashes under heavy browser load (sandbox memory limitation)
+- Authentication still not implemented (schema ready, NextAuth available)
+- API routes exist but frontend uses localStorage (integration pending auth)
+- Multi-language support (EN/ID) not yet implemented
+- QR expiration/password protection not yet implemented
+- Skeleton loaders created but not yet integrated into views
+
+Priority Recommendations for Next Phase:
+- Integrate skeleton loaders into Favorites/History/Dashboard views
+- Implement NextAuth authentication with role-based access
+- Wire API routes to frontend when authenticated
+- Add multi-language support (EN/ID toggle)
+- Add QR expiration/password protection option
+- Add more chart interactivity (click-to-filter)
+- Add search history with recent searches

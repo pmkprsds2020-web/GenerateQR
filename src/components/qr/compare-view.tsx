@@ -16,6 +16,7 @@ import { GitCompare, ArrowRight, Check, X, Minus } from "lucide-react";
 import { useQrStore } from "@/store/qr-store";
 import { QR_TYPE_LABELS, QR_TYPE_ICONS } from "@/lib/qr/qr-types";
 import { QrPreview } from "./qr-preview";
+import { EmptyState } from "./empty-state";
 
 export function CompareView() {
   const records = useQrStore((s) => s.records);
@@ -104,22 +105,13 @@ export function CompareView() {
 
       {records.length < 2 ? (
         <Card className="card-premium">
-          <CardContent className="py-16">
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="relative mb-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10">
-                  <GitCompare className="h-8 w-8 text-primary/60" />
-                </div>
-                <div className="absolute -inset-3 border-2 border-dashed border-primary/10 rounded-3xl animate-pulse-soft" />
-              </div>
-              <p className="text-sm font-semibold">Butuh minimal 2 QR Code</p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-                Buat dan simpan minimal 2 QR Code untuk menggunakan fitur perbandingan
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                Saat ini ada: {records.length} QR Code
-              </p>
-            </div>
+          <CardContent className="py-8">
+            <EmptyState
+              icon={GitCompare}
+              title="Butuh minimal 2 QR Code"
+              description={`Buat dan simpan minimal 2 QR Code untuk menggunakan fitur perbandingan. Saat ini ada: ${records.length} QR Code`}
+              variant="default"
+            />
           </CardContent>
         </Card>
       ) : (
