@@ -34,7 +34,7 @@ export function QrPreview({ content, customization, size = 320, className }: QrP
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [content, customization.fgColor, customization.bgColor, customization.margin, customization.errorCorrectionLevel, customization.logoDataUrl, customization.logoSize, customization.pixelShape, customization.gradientEnabled, customization.gradientColor1, customization.gradientColor2, customization.gradientDirection, size]);
+  }, [content, customization.fgColor, customization.bgColor, customization.margin, customization.errorCorrectionLevel, customization.logoDataUrl, customization.logoSize, customization.pixelShape, customization.gradientEnabled, customization.gradientColor1, customization.gradientColor2, customization.gradientDirection, customization.frameEnabled, customization.frameStyle, customization.frameColor, customization.frameText, size]);
 
   if (!content.trim()) {
     return (
@@ -120,6 +120,30 @@ async function generateSvg(content: string, customization: QrCustomization, size
       ? `<defs><linearGradient id="${gradId}" x1="0%" y1="0%" x2="${x2}%" y2="${y2}%"><stop offset="0%" stop-color="${customization.gradientColor1}"/><stop offset="100%" stop-color="${customization.gradientColor2}"/></linearGradient></defs>`
       : "";
     const fillValue = useGradient ? `url(#${gradId})` : customization.fgColor;
+
+    // Frame rendering
+    const useFrame = customization.frameEnabled;
+    if (useFrame) {
+      const frameColor = customization.frameColor || customization.fgColor;
+      const frameText = (customization.frameText || "Scan Me").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const frameStyle = customization.frameStyle || "rounded";
+      const pad = size * 0.06;
+      const textH = size * 0.1;
+      const qrAreaSize = size - pad * 2;
+      const qrH = qrAreaSize - textH;
+      const rx = frameStyle === "rounded" ? 20 : frameStyle === "circle" ? size / 2 : 0;
+
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 ${size} ${size}" shape-rendering="geometricPrecision" style="max-width:100%;height:auto;">
+  ${fillDef}
+  <rect x="0" y="0" width="${size}" height="${size}" rx="${rx}" fill="${frameColor}"/>
+  <rect x="${pad}" y="${pad}" width="${qrAreaSize}" height="${qrH}" rx="${Math.max(0, rx - pad)}" fill="${customization.bgColor}"/>
+  <svg x="${pad}" y="${pad}" width="${qrAreaSize}" height="${qrH}" viewBox="0 0 ${size} ${size}" preserveAspectRatio="xMidYMid meet">
+    <g fill="${fillValue}">${modulesSvg}</g>
+    ${logoSvg}
+  </svg>
+  <text x="${size / 2}" y="${size - pad - textH * 0.3}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="${textH * 0.55}" font-weight="700" fill="${frameColor}" letter-spacing="1">${frameText}</text>
+</svg>`;
+    }
 
     return `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 ${size} ${size}" shape-rendering="geometricPrecision" style="max-width:100%;height:auto;">
   ${fillDef}

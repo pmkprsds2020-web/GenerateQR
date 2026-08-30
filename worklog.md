@@ -276,3 +276,138 @@ Priority Recommendations for Next Phase:
 - Add more chart interactivity (tooltips, click-to-filter)
 - Add onboarding tour for first-time users
 - Add export history to CSV
+
+---
+Task ID: 4
+Agent: Web Dev Review Agent (cron)
+Task: QA testing, new features (Frame, CSV Export, Onboarding, Custom Templates), and styling enhancements
+
+Work Log:
+- Read worklog.md to understand previous progress (QR GEN PRO with premium styling, gradient, batch, command palette)
+- Performed comprehensive QA testing with agent-browser:
+  - All 8 views load correctly (Dashboard, Generate, Batch, Scanner, History, Favorites, Templates, Statistics, Settings)
+  - QR generation works for all types (URL, WhatsApp, WiFi, vCard, Payment tested)
+  - Real-time preview renders correctly
+  - Save to history works (localStorage persistence)
+  - Command palette (Ctrl+K) opens and closes properly
+  - Batch generation processes multiple items correctly
+  - No runtime errors, no console errors
+  - ESLint: 0 errors, 0 warnings
+- VLM analysis identified areas for improvement:
+  - Scanner view needed better camera UI with scanning animation
+  - Empty states could be more engaging
+  - Missing frame/border decorative options for QR codes
+
+New Features Added:
+1. QR Frame/Border Decorative Options:
+   - Added frameEnabled, frameStyle, frameColor, frameText to QrCustomization type
+   - 3 frame styles: Rounded, Square, Circle
+   - Custom frame text (max 30 chars, default "Scan Me")
+   - Custom frame color picker
+   - Updated QrPreview SVG renderer with nested SVG approach for frame rendering
+   - Updated download utility to support frames in exported files
+   - Frame wraps QR code with colored border and text label at bottom
+   - Verified: frame text "Scan Me" appears in SVG, frame renders correctly
+
+2. Export History to CSV:
+   - Added "Export CSV" button in History view header
+   - Exports filtered records (respects search/type/date filters)
+   - CSV columns: No, Nama, Jenis, Isi, Favorit, Tanggal Dibuat, Tanggal Update
+   - UTF-8 BOM for Excel compatibility
+   - Proper CSV escaping (quotes, commas)
+   - Filename includes date: qr-history-YYYY-MM-DD.csv
+   - Toast notification on success
+
+3. Onboarding Tour for First-Time Users:
+   - 5-step interactive tour with gradient headers
+   - Steps: Welcome, Create QR, Download & Customize, Scan, Manage & Favorites
+   - Progress dots with click-to-jump
+   - Skip, Previous, Next, and Finish buttons
+   - Animated icon transitions (spring rotation)
+   - localStorage tracking (shows only once, can restart from Settings)
+   - "Restart Tour" option in Settings > Help section
+   - Keyboard shortcuts reference in Settings
+   - Verified: tour opens on first visit, navigation works, skip closes it
+
+4. Custom Template Save Feature:
+   - Added CustomTemplate interface and store methods (saveCustomTemplate, deleteCustomTemplate)
+   - "Save Template" button in Generate view header
+   - Dialog with template name input and configuration preview
+   - Custom templates section in Templates view with delete option
+   - Custom templates have gradient icon backgrounds and "Kustom" badge
+   - Delete confirmation dialog
+   - Verified: custom template saved (count: 1), appears in Templates view
+
+Styling Enhancements:
+1. Scanner View Overhaul:
+   - Added scanning line animation (emerald glow, vertical sweep)
+   - Enhanced corner markers (larger, rounded, emerald color)
+   - "SCANNING" indicator badge with pulsing red dot
+   - Camera off state with animated icon entrance
+   - Gradient dark background (slate-900 to slate-800)
+   - Result panel with emerald success highlight
+   - Animated result appearance (scale-in)
+   - Better empty state with dashed border animation
+   - Clock icon for scan timestamp
+
+2. Templates View Enhancement:
+   - Section headers with icons and count badges
+   - Custom templates section (separate from built-in)
+   - Card hover effects with scale on icons
+   - Gradient icon backgrounds
+   - Delete button appears on hover
+   - Staggered entrance animations
+
+3. Settings View Enhancement:
+   - New "Help & Tour" section with restart tour button
+   - Keyboard shortcuts reference card
+   - Better visual hierarchy
+
+4. Generate View Enhancement:
+   - "Save Template" button in header
+   - Better header layout with title and action button
+   - Template save dialog with configuration preview
+
+Verification Results:
+- ESLint: 0 errors, 0 warnings (clean)
+- Dev log: all 200 responses, no errors
+- agent-browser testing:
+  - All views load without errors
+  - Onboarding tour: opens on first visit, navigation works (1→2→...→5), skip closes
+  - Frame feature: "frame text found in SVG: YES" confirmed
+  - CSV Export: function executes, downloads file
+  - Custom template: saved (count: 1), appears in Templates view
+  - Scanner: enhanced UI with animations
+  - No console errors
+- VLM ratings:
+  - Onboarding tour: 8/10
+  - Scanner view: 8/10
+  - Generate view: 8/10
+  - All features visible and functional
+
+Stage Summary:
+- 4 new major features added: Frame/Border, CSV Export, Onboarding Tour, Custom Templates
+- Scanner view significantly enhanced with scanning animations
+- Templates view supports both built-in and custom templates
+- Settings includes tour restart and keyboard shortcuts reference
+- All features verified working with agent-browser
+- No bugs introduced, lint clean
+- VLM ratings consistently 8/10
+
+Unresolved Issues / Risks:
+- Authentication still not implemented (schema ready, NextAuth available)
+- API routes exist but frontend uses localStorage (integration pending auth)
+- Frame text rendering could be improved (currently basic SVG text)
+- Custom template loading doesn't pre-fill form data (only sets type)
+- Batch download still sequential (could use JSZip for batch)
+
+Priority Recommendations for Next Phase:
+- Implement NextAuth authentication with role-based access
+- Wire API routes to frontend when authenticated
+- Add admin dashboard with user management
+- Add JSZip for batch QR download as ZIP
+- Pre-fill form data when selecting custom template
+- Add more frame styles and decorative options
+- Add QR code analytics (scan tracking)
+- Add multi-language support (EN/ID toggle)
+- Add more chart interactivity in statistics

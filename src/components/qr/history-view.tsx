@@ -36,7 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Search, Star, Eye, Pencil, Copy, Trash2, Download, ChevronLeft, ChevronRight, History as HistoryIcon, Plus } from "lucide-react";
+import { Search, Star, Eye, Pencil, Copy, Trash2, Download, ChevronLeft, ChevronRight, History as HistoryIcon, Plus, FileSpreadsheet } from "lucide-react";
 import { useQrStore } from "@/store/qr-store";
 import { QR_TYPE_LABELS, QR_TYPE_ICONS, type QrType } from "@/lib/qr/qr-types";
 import { QrPreview } from "./qr-preview";
@@ -123,6 +123,34 @@ export function HistoryView() {
     setActiveView("generate");
   };
 
+  const handleExportCSV = () => {
+    if (filtered.length === 0) {
+      toast.warning("Tidak ada data untuk diexport.");
+      return;
+    }
+    const headers = ["No", "Nama", "Jenis", "Isi", "Favorit", "Tanggal Dibuat", "Tanggal Update"];
+    const rows = filtered.map((r, i) => [
+      i + 1,
+      r.name,
+      QR_TYPE_LABELS[r.type] || r.type,
+      r.content,
+      r.favorite ? "Ya" : "Tidak",
+      new Date(r.createdAt).toLocaleString("id-ID"),
+      new Date(r.updatedAt).toLocaleString("id-ID"),
+    ]);
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `qr-history-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`✓ ${filtered.length} data berhasil diexport ke CSV`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -133,10 +161,16 @@ export function HistoryView() {
           </h1>
           <p className="text-sm text-muted-foreground">{records.length} QR Code tersimpan</p>
         </div>
-        <Button size="sm" onClick={() => { setEditingId(null); setActiveView("generate"); }}>
-          <Plus className="h-4 w-4 mr-2" />
-          Buat QR Baru
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={handleExportCSV} disabled={records.length === 0}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button size="sm" onClick={() => { setEditingId(null); setActiveView("generate"); }}>
+            <Plus className="h-4 w-4 mr-2" />
+            Buat QR Baru
+          </Button>
+        </div>
       </div>
 
       <Card>

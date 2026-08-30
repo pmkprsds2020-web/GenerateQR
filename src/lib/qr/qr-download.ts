@@ -74,6 +74,29 @@ export async function generateSvgString(
     : "";
   const fillValue = useGradient ? `url(#${gradId})` : customization.fgColor;
 
+  // Frame rendering for download
+  if (customization.frameEnabled) {
+    const frameColor = customization.frameColor || customization.fgColor;
+    const frameText = (customization.frameText || "Scan Me").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const frameStyle = customization.frameStyle || "rounded";
+    const pad = size * 0.06;
+    const textH = size * 0.1;
+    const qrAreaSize = size - pad * 2;
+    const qrH = qrAreaSize - textH;
+    const rx = frameStyle === "rounded" ? 20 : frameStyle === "circle" ? size / 2 : 0;
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" shape-rendering="geometricPrecision">
+  ${fillDef}
+  <rect x="0" y="0" width="${size}" height="${size}" rx="${rx}" fill="${frameColor}"/>
+  <rect x="${pad}" y="${pad}" width="${qrAreaSize}" height="${qrH}" rx="${Math.max(0, rx - pad)}" fill="${customization.bgColor}"/>
+  <svg x="${pad}" y="${pad}" width="${qrAreaSize}" height="${qrH}" viewBox="0 0 ${size} ${size}" preserveAspectRatio="xMidYMid meet">
+    <g fill="${fillValue}">${modulesSvg}</g>
+    ${logoSvg}
+  </svg>
+  <text x="${size / 2}" y="${size - pad - textH * 0.3}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="${textH * 0.55}" font-weight="700" fill="${frameColor}" letter-spacing="1">${frameText}</text>
+</svg>`;
+  }
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges">
   ${fillDef}
   <rect width="${size}" height="${size}" fill="${customization.bgColor}"/>

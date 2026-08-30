@@ -1,12 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { motion } from "framer-motion";
 import { Html5Qrcode } from "html5-qrcode";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Camera, Upload, CameraOff, Copy, Download, ExternalLink, CheckCircle2, Trash2 } from "lucide-react";
+import { Camera, Upload, CameraOff, Copy, Download, ExternalLink, CheckCircle2, Trash2, ScanLine, Zap, Clock } from "lucide-react";
 import { detectQrType } from "@/lib/qr/qr-content";
 import { toast } from "sonner";
 
@@ -128,38 +129,67 @@ export function ScannerView() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="flex items-center gap-2 mb-1">
+          <ScanLine className="h-5 w-5 text-primary" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-primary">Scanner</span>
+        </div>
         <h1 className="text-2xl font-bold tracking-tight">QR Scanner</h1>
         <p className="text-sm text-muted-foreground">
           Pindai QR Code menggunakan kamera atau upload gambar.
         </p>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Scanner */}
-        <Card>
+        <Card className="card-premium">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Camera className="h-4 w-4" />
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+                <Camera className="h-4 w-4 text-primary" />
+              </div>
               Pindai dengan Kamera
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="relative aspect-square w-full max-w-sm mx-auto rounded-xl overflow-hidden bg-black/90 border-2 border-border">
+            <div className="relative aspect-square w-full max-w-sm mx-auto rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 border-2 border-border shadow-lg">
               <div id={containerId} className="w-full h-full" />
               {!scanning && !result && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-white/80 gap-3 pointer-events-none">
-                  <CameraOff className="h-10 w-10" />
-                  <p className="text-sm">Kamera tidak aktif</p>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white/70 gap-3 pointer-events-none">
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20"
+                  >
+                    <CameraOff className="h-8 w-8" />
+                  </motion.div>
+                  <p className="text-sm font-medium">Kamera tidak aktif</p>
+                  <p className="text-xs text-white/50">Klik tombol di bawah untuk memulai</p>
                 </div>
               )}
               {scanning && (
-                <div className="absolute inset-8 border-2 border-white/70 rounded-lg pointer-events-none">
-                  <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-emerald-400 rounded-tl-lg" />
-                  <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-emerald-400 rounded-tr-lg" />
-                  <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-emerald-400 rounded-bl-lg" />
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-emerald-400 rounded-br-lg" />
-                </div>
+                <>
+                  <div className="absolute inset-8 border-2 border-white/70 rounded-xl pointer-events-none" />
+                  <motion.div
+                    className="absolute left-8 right-8 h-0.5 bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)] pointer-events-none"
+                    initial={{ top: "15%" }}
+                    animate={{ top: ["15%", "85%", "15%"] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-emerald-400 rounded-tl-xl pointer-events-none" />
+                  <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-emerald-400 rounded-tr-xl pointer-events-none" />
+                  <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-emerald-400 rounded-bl-xl pointer-events-none" />
+                  <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-emerald-400 rounded-br-xl pointer-events-none" />
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-2.5 py-1 pointer-events-none">
+                    <motion.div
+                      className="h-2 w-2 rounded-full bg-red-500"
+                      animate={{ opacity: [1, 0.3, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    />
+                    <span className="text-[10px] text-white font-medium">SCANNING</span>
+                  </div>
+                </>
               )}
             </div>
 
@@ -171,12 +201,12 @@ export function ScannerView() {
 
             <div className="flex gap-2">
               {!scanning ? (
-                <Button onClick={startCamera} className="flex-1">
+                <Button onClick={startCamera} className="flex-1 shadow-sm">
                   <Camera className="h-4 w-4 mr-2" />
                   Mulai Kamera
                 </Button>
               ) : (
-                <Button onClick={stopCamera} variant="destructive" className="flex-1">
+                <Button onClick={stopCamera} variant="destructive" className="flex-1 shadow-sm">
                   <CameraOff className="h-4 w-4 mr-2" />
                   Stop Kamera
                 </Button>
@@ -185,7 +215,7 @@ export function ScannerView() {
 
             <div className="flex items-center gap-2">
               <Separator />
-              <span className="text-xs text-muted-foreground px-2">ATAU</span>
+              <span className="text-xs text-muted-foreground px-2 font-medium">ATAU</span>
               <Separator />
             </div>
 
@@ -206,55 +236,71 @@ export function ScannerView() {
         </Card>
 
         {/* Result */}
-        <Card>
+        <Card className="card-premium">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Hasil Scan</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+                <Zap className="h-4 w-4 text-primary" />
+              </div>
+              Hasil Scan
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {!result ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-3">
-                  <Camera className="h-6 w-6 text-muted-foreground" />
+                <div className="relative mb-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10">
+                    <Camera className="h-8 w-8 text-primary/60" />
+                  </div>
+                  <div className="absolute -inset-3 border-2 border-dashed border-primary/10 rounded-3xl animate-pulse-soft" />
                 </div>
-                <p className="text-sm font-medium">Belum ada hasil</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Hasil scan akan muncul di sini
+                <p className="text-sm font-semibold">Belum ada hasil</p>
+                <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                  Hasil scan akan muncul di sini setelah QR Code terdeteksi
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                  <span className="font-medium">QR Code terdeteksi</span>
-                  <Badge variant="secondary" className="ml-auto">{result.label}</Badge>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="space-y-4"
+              >
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                  <span className="font-medium text-sm">QR Code terdeteksi</span>
+                  <Badge variant="secondary" className="ml-auto bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">{result.label}</Badge>
                 </div>
 
-                <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Isi QR:</p>
+                <div className="rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 p-4 border border-border/40">
+                  <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                    <Copy className="h-3 w-3" />
+                    Isi QR:
+                  </p>
                   <p className="text-sm font-mono break-all">{result.content}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" size="sm" onClick={copyContent}>
+                  <Button variant="outline" size="sm" onClick={copyContent} className="shadow-sm">
                     <Copy className="h-3.5 w-3.5 mr-1.5" />
                     Copy
                   </Button>
-                  <Button variant="outline" size="sm" onClick={openUrl}>
+                  <Button variant="outline" size="sm" onClick={openUrl} className="shadow-sm">
                     <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
                     Buka URL
                   </Button>
                 </div>
 
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
                   Dipindai: {new Date(result.timestamp).toLocaleString("id-ID")}
                 </div>
 
                 {history.length > 1 && (
                   <div className="space-y-2 pt-2 border-t">
                     <p className="text-xs font-medium">Riwayat Scan:</p>
-                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                    <div className="space-y-1 max-h-48 overflow-y-auto scrollbar-thin">
                       {history.slice(1).map((h, i) => (
-                        <div key={i} className="flex items-center gap-2 text-xs p-2 rounded bg-muted/30">
+                        <div key={i} className="flex items-center gap-2 text-xs p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                           <Badge variant="outline" className="text-[10px]">{h.label}</Badge>
                           <span className="flex-1 truncate font-mono">{h.content}</span>
                           <button onClick={() => setResult(h)} className="text-muted-foreground hover:text-foreground">
@@ -265,7 +311,7 @@ export function ScannerView() {
                     </div>
                   </div>
                 )}
-              </div>
+              </motion.div>
             )}
           </CardContent>
         </Card>

@@ -4,8 +4,19 @@ import { persist } from "zustand/middleware";
 import type { QrRecord, QrType, QrCustomization } from "@/lib/qr/qr-types";
 import { DEFAULT_CUSTOMIZATION } from "@/lib/qr/qr-types";
 
+export interface CustomTemplate {
+  id: string;
+  name: string;
+  type: QrType;
+  icon: string;
+  data: Record<string, unknown>;
+  customization: QrCustomization;
+  createdAt: string;
+}
+
 interface QrStoreState {
   records: QrRecord[];
+  customTemplates: CustomTemplate[];
   activeView: string;
   editingId: string | null;
   setType: string | null; // when picking a template
@@ -20,6 +31,9 @@ interface QrStoreState {
   toggleFavorite: (id: string) => void;
   getQr: (id: string) => QrRecord | undefined;
 
+  saveCustomTemplate: (tpl: Omit<CustomTemplate, "id" | "createdAt">) => CustomTemplate;
+  deleteCustomTemplate: (id: string) => void;
+
   clearHistory: () => void;
 }
 
@@ -27,6 +41,7 @@ export const useQrStore = create<QrStoreState>()(
   persist(
     (set, get) => ({
       records: [],
+      customTemplates: [],
       activeView: "generate",
       editingId: null,
       setType: null,
@@ -91,6 +106,20 @@ export const useQrStore = create<QrStoreState>()(
       },
 
       getQr: (id) => get().records.find((r) => r.id === id),
+
+      saveCustomTemplate: (tpl) => {
+        const newTpl: CustomTemplate = {
+          ...tpl,
+          id: `tpl_custom_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+          createdAt: new Date().toISOString(),
+        };
+        set((state) => ({ customTemplates: [newTpl, ...state.customTemplates] }));
+        return newTpl;
+      },
+
+      deleteCustomTemplate: (id) => {
+        set((state) => ({ customTemplates: state.customTemplates.filter((t) => t.id !== id) }));
+      },
 
       clearHistory: () => set({ records: [] }),
     }),

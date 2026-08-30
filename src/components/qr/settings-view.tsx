@@ -18,6 +18,8 @@ import {
   Shield,
   Info,
   Github,
+  HelpCircle,
+  RotateCw,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -101,6 +103,48 @@ export function SettingsView() {
                 onCheckedChange={(v) => setTheme(v ? "dark" : "light")}
               />
               <Moon className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Help & Tour */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <HelpCircle className="h-4 w-4" />
+            Bantuan
+          </CardTitle>
+          <CardDescription>Tour aplikasi dan panduan</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">Mulai Tour Ulang</Label>
+              <p className="text-xs text-muted-foreground">Pelajari fitur aplikasi dari awal</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                localStorage.removeItem("qr-gen-pro-tour-completed");
+                toast.success("Tour akan dimulai ulang. Muat ulang halaman untuk melihat.");
+                setTimeout(() => window.location.reload(), 1200);
+              }}
+            >
+              <RotateCw className="h-4 w-4 mr-2" />
+              Mulai Tour
+            </Button>
+          </div>
+          <div className="rounded-lg bg-muted/50 p-3 text-xs space-y-1.5">
+            <p className="font-medium">Shortcut Keyboard:</p>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Buka Command Palette</span>
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded border bg-background">⌘K</kbd>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Ganti Tema</span>
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded border bg-background">⌘J</kbd>
             </div>
           </div>
         </CardContent>

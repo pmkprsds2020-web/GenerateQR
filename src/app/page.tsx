@@ -13,6 +13,7 @@ import { StatisticsView } from "@/components/qr/statistics-view";
 import { SettingsView } from "@/components/qr/settings-view";
 import { BatchView } from "@/components/qr/batch-view";
 import { CommandPalette } from "@/components/qr/command-palette";
+import { OnboardingTour } from "@/components/qr/onboarding-tour";
 import { useQrStore } from "@/store/qr-store";
 import { QrCode, Heart } from "lucide-react";
 
@@ -94,6 +95,7 @@ export default function Home() {
         </main>
       </div>
       <CommandPalette />
+      <OnboardingTour />
     </div>
   );
 }

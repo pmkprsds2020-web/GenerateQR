@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Switch } from "@/components/ui/switch";
-import { Upload, X, AlertTriangle, RotateCcw, Sparkles, Palette } from "lucide-react";
+import { Upload, X, AlertTriangle, RotateCcw, Sparkles, Palette, Frame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QrCustomization, ErrorCorrectionLevel } from "@/lib/qr/qr-types";
 import { DEFAULT_CUSTOMIZATION } from "@/lib/qr/qr-types";
@@ -394,6 +394,71 @@ export function CustomizationPanel({ customization, onChange }: CustomizationPan
               Maks 2MB. Otomatis menggunakan error correction H.
             </p>
           </>
+        )}
+      </div>
+
+      {/* Frame / Border */}
+      <div className="space-y-3 rounded-lg border border-border/60 bg-muted/30 p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Frame className="h-3.5 w-3.5 text-primary" />
+            <Label className="text-xs font-medium">Bingkai (Frame)</Label>
+          </div>
+          <Switch
+            checked={customization.frameEnabled || false}
+            onCheckedChange={(v) =>
+              update({
+                frameEnabled: v,
+                frameStyle: v ? (customization.frameStyle || "rounded") : undefined,
+                frameColor: v ? (customization.frameColor || customization.fgColor) : undefined,
+                frameText: v ? (customization.frameText || "Scan Me") : undefined,
+              })
+            }
+          />
+        </div>
+        {customization.frameEnabled && (
+          <div className="space-y-3 animate-fade-in">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] text-muted-foreground">Gaya Bingkai</Label>
+              <ToggleGroup
+                type="single"
+                value={customization.frameStyle || "rounded"}
+                onValueChange={(v) => v && update({ frameStyle: v as any })}
+                className="justify-start"
+              >
+                <ToggleGroupItem value="rounded" className="text-xs h-8">Membulat</ToggleGroupItem>
+                <ToggleGroupItem value="square" className="text-xs h-8">Kotak</ToggleGroupItem>
+                <ToggleGroupItem value="circle" className="text-xs h-8">Lingkaran</ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] text-muted-foreground">Teks Bingkai</Label>
+              <Input
+                value={customization.frameText || ""}
+                onChange={(e) => update({ frameText: e.target.value })}
+                placeholder="Scan Me"
+                className="h-8 text-xs"
+                maxLength={30}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] text-muted-foreground">Warna Bingkai</Label>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="color"
+                  value={customization.frameColor || customization.fgColor}
+                  onChange={(e) => update({ frameColor: e.target.value })}
+                  className="h-8 w-8 rounded border cursor-pointer"
+                  aria-label="Warna bingkai"
+                />
+                <Input
+                  value={customization.frameColor || customization.fgColor}
+                  onChange={(e) => update({ frameColor: e.target.value })}
+                  className="h-8 font-mono text-[11px]"
+                />
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
