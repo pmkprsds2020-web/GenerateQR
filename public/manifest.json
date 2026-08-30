@@ -1,0 +1,21 @@
+{
+  "name": "QR GEN PRO — QR Code Generator",
+  "short_name": "QR GEN PRO",
+  "description": "Buat QR Code dengan cepat untuk website, WhatsApp, WiFi, email, kontak, lokasi, dan berbagai kebutuhan lainnya.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "id",
+  "dir": "ltr"
+}
