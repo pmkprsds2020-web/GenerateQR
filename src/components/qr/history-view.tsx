@@ -44,6 +44,7 @@ import { QrPreview } from "./qr-preview";
 import { TagInput } from "./tag-input";
 import { EmptyState } from "./empty-state";
 import { downloadQrCode } from "@/lib/qr/qr-download";
+import { getScannableQrValue, isTrackableQrType } from "@/lib/qr/qr-tracking";
 import { toast } from "sonner";
 
 const PAGE_SIZE = 8;
@@ -70,6 +71,7 @@ export function HistoryView() {
   const [page, setPage] = React.useState(1);
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const [previewId, setPreviewId] = React.useState<string | null>(null);
+  const [remoteScanCount, setRemoteScanCount] = React.useState<number | null>(null);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = React.useState(false);
   const [showRecentSearches, setShowRecentSearches] = React.useState(false);
@@ -213,12 +215,34 @@ export function HistoryView() {
 
   const previewRecord = previewId ? records.find((r) => r.id === previewId) : null;
 
+  // Pull the real scan count (from actual camera scans via /r/[id]) whenever
+  // the preview opens. Falls back to null (shows the local simulated count
+  // instead) if the API/database isn't reachable.
+  React.useEffect(() => {
+    if (!previewId) {
+      setRemoteScanCount(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/qr/${previewId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!cancelled && json?.data?.scanCount !== undefined) {
+          setRemoteScanCount(json.data.scanCount);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [previewId]);
+
   const handleDownload = async (record: typeof records[0]) => {
     try {
       await downloadQrCode({
         format: "png",
         size: 1024,
-        content: record.content,
+        content: getScannableQrValue(record),
         customization: record.customization,
         filename: record.name || "qr-code",
       });
@@ -617,7 +641,7 @@ export function HistoryView() {
           {previewRecord && (
             <div className="space-y-4">
               <div className="flex justify-center bg-muted/30 rounded-xl p-6">
-                <QrPreview content={previewRecord.content} customization={previewRecord.customization} size={280} />
+                <QrPreview content={getScannableQrValue(previewRecord)} customization={previewRecord.customization} size={280} />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
@@ -629,8 +653,15 @@ export function HistoryView() {
                     <BarChart3 className="h-3.5 w-3.5" />
                     Total Scan:
                   </span>
-                  <Badge variant="outline" className="font-mono">{getScanCount(previewRecord.id)}</Badge>
+                  <Badge variant="outline" className="font-mono">
+                    {remoteScanCount ?? getScanCount(previewRecord.id)}
+                  </Badge>
                 </div>
+                {!isTrackableQrType(previewRecord.type) && (
+                  <p className="text-xs text-muted-foreground">
+                    Scan asli dari HP belum bisa dilacak untuk tipe {QR_TYPE_LABELS[previewRecord.type]}.
+                  </p>
+                )}
                 <div className="rounded-md bg-muted/50 p-2 text-xs font-mono break-all max-h-32 overflow-y-auto">
                   {previewRecord.content}
                 </div>

@@ -12,6 +12,7 @@ import { QR_TYPE_LABELS, QR_TYPE_ICONS } from "@/lib/qr/qr-types";
 import { QrPreview } from "./qr-preview";
 import { EmptyState } from "./empty-state";
 import { downloadQrCode } from "@/lib/qr/qr-download";
+import { getScannableQrValue } from "@/lib/qr/qr-tracking";
 import {
   Dialog,
   DialogContent,
@@ -36,7 +37,7 @@ export function FavoritesView() {
     await downloadQrCode({
       format: "png",
       size: 1024,
-      content: r.content,
+      content: getScannableQrValue(r),
       customization: r.customization,
       filename: r.name,
     });
@@ -91,7 +92,7 @@ export function FavoritesView() {
               <Card key={r.id} className="overflow-hidden hover:shadow-md transition-shadow group card-premium">
                 <CardContent className="p-4">
                   <div className="flex justify-center bg-gradient-to-br from-muted/40 to-muted/20 rounded-xl p-4 mb-3 relative border border-border/40">
-                    <QrPreview content={r.content} customization={r.customization} size={180} />
+                    <QrPreview content={getScannableQrValue(r)} customization={r.customization} size={180} />
                     <button
                       onClick={() => toggleFavorite(r.id)}
                       className="absolute top-1 right-1 p-1.5 rounded-lg bg-background/80 backdrop-blur hover:bg-background"
@@ -139,7 +140,7 @@ export function FavoritesView() {
                 <CardContent className="p-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-muted/30 shrink-0 overflow-hidden">
-                      <QrPreview content={r.content} customization={r.customization} size={56} />
+                      <QrPreview content={getScannableQrValue(r)} customization={r.customization} size={56} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -181,7 +182,7 @@ export function FavoritesView() {
           {previewRecord && (
             <div className="space-y-3">
               <div className="flex justify-center bg-muted/30 rounded-xl p-6">
-                <QrPreview content={previewRecord.content} customization={previewRecord.customization} size={280} />
+                <QrPreview content={getScannableQrValue(previewRecord)} customization={previewRecord.customization} size={280} />
               </div>
               <div className="rounded-md bg-muted/50 p-2 text-xs font-mono break-all max-h-32 overflow-y-auto">
                 {previewRecord.content}

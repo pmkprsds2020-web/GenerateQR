@@ -34,6 +34,7 @@ model QrCode {
   customization String?
   filePath     String?
   isPublic     Boolean  @default(true)
+  scanCount    Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
