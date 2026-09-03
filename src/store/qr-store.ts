@@ -1,8 +1,33 @@
-// QR store - manages QR records, favorites, templates via localStorage
+// QR store - manages QR records, favorites, templates via localStorage,
+// and mirrors QR code records to the Supabase-backed API in the background.
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { QrRecord, QrType, QrCustomization } from "@/lib/qr/qr-types";
 import { DEFAULT_CUSTOMIZATION } from "@/lib/qr/qr-types";
+
+// Fire-and-forget sync to the database. Local storage stays the source of
+// truth for the UI (fast, works offline); this just mirrors changes to
+// Supabase via the Prisma-backed API routes. Failures are swallowed so a
+// database hiccup never breaks the local experience.
+function syncQrUpsert(record: QrRecord) {
+  if (typeof window === "undefined") return;
+  fetch("/api/qr", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: record.id,
+      name: record.name,
+      type: record.type,
+      content: record.content,
+      customization: record.customization,
+    }),
+  }).catch(() => {});
+}
+
+function syncQrDelete(id: string) {
+  if (typeof window === "undefined") return;
+  fetch(`/api/qr/${id}`, { method: "DELETE" }).catch(() => {});
+}
 
 export interface CustomTemplate {
   id: string;
@@ -99,6 +124,7 @@ export const useQrStore = create<QrStoreState>()(
           set((state) => ({
             records: state.records.map((r) => (r.id === record.id ? updated : r)),
           }));
+          syncQrUpsert(updated);
           return updated;
         }
         // Create new
@@ -110,11 +136,13 @@ export const useQrStore = create<QrStoreState>()(
           favorite: false,
         } as QrRecord;
         set((state) => ({ records: [newRecord, ...state.records] }));
+        syncQrUpsert(newRecord);
         return newRecord;
       },
 
       deleteQr: (id) => {
         set((state) => ({ records: state.records.filter((r) => r.id !== id) }));
+        syncQrDelete(id);
       },
 
       duplicateQr: (id) => {
@@ -130,6 +158,7 @@ export const useQrStore = create<QrStoreState>()(
           favorite: false,
         };
         set((state) => ({ records: [copy, ...state.records] }));
+        syncQrUpsert(copy);
         return copy;
       },
 

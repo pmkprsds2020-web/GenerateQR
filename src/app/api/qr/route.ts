@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, type, content, customization, userId, isPublic } = body;
+    const { id, name, type, content, customization, userId, isPublic } = body;
 
     if (!name || !type || !content) {
       return NextResponse.json(
@@ -44,14 +44,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Content too long" }, { status: 400 });
     }
 
-    const record = await db.qrCode.create({
-      data: {
+    const record = await db.qrCode.upsert({
+      where: { id: id || "__none__" },
+      create: {
+        ...(id ? { id: String(id) } : {}),
         name: String(name).slice(0, 255),
         type: String(type),
         content: String(content).slice(0, 4000),
         customization: customization ? JSON.stringify(customization) : null,
         userId: userId || null,
         isPublic: isPublic !== false,
+      },
+      update: {
+        name: String(name).slice(0, 255),
+        type: String(type),
+        content: String(content).slice(0, 4000),
+        customization: customization ? JSON.stringify(customization) : null,
       },
     });
 
