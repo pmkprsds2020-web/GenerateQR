@@ -51,7 +51,7 @@ const NAV_COMMANDS = [
   { id: "settings", label: "Pengaturan", icon: Settings, group: "Navigasi" },
 ];
 
-const QR_TYPES: QrType[] = ["url", "text", "phone", "whatsapp", "email", "sms", "wifi", "vcard", "location", "event", "payment", "custom"];
+const QR_TYPES: QrType[] = ["url", "pdf", "text", "phone", "whatsapp", "email", "sms", "wifi", "vcard", "location", "event", "payment", "custom"];
 
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false);

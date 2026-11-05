@@ -24,6 +24,13 @@ export function validateQrForm(type: QrType, data: QrFormData): ValidationResult
       }
       break;
     }
+    case "pdf": {
+      require("pdfUrl", data.pdfUrl, "Upload file PDF atau tempel link PDF terlebih dahulu.");
+      if (data.pdfUrl && !/^(https?:\/\/)?[\w-]+(\.[\w-]+)+.*$/i.test(data.pdfUrl.trim())) {
+        errors.pdfUrl = "Link PDF tidak valid.";
+      }
+      break;
+    }
     case "text":
       require("text", data.text, "Teks wajib diisi.");
       break;

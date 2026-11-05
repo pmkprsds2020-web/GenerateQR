@@ -76,6 +76,8 @@ export function BatchView() {
     switch (type) {
       case "url":
         return { url: value, name };
+      case "pdf":
+        return { pdfUrl: value, name };
       case "text":
         return { text: value, name };
       case "phone":
@@ -196,6 +198,7 @@ export function BatchView() {
 
   const examples: Record<QrType, string> = {
     url: "Toko A,https://toko-a.com\nToko B,https://toko-b.com\nToko C,https://toko-c.com",
+    pdf: "Sertifikat Budi,https://example.com/sertifikat-budi.pdf\nSertifikat Siti,https://example.com/sertifikat-siti.pdf",
     text: "Pesan 1\nPesan 2\nPesan 3",
     phone: "Kantor A,0211234567\nKantor B,0217654321",
     whatsapp: "Sales A,628123456789\nSales B,628987654321",

@@ -665,6 +665,16 @@ export function HistoryView() {
                 <div className="rounded-md bg-muted/50 p-2 text-xs font-mono break-all max-h-32 overflow-y-auto">
                   {previewRecord.content}
                 </div>
+                {previewRecord.type === "pdf" && (
+                  <a
+                    href={previewRecord.content}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                  >
+                    📄 Buka PDF{(previewRecord.data as any)?.pdfFileName ? `: ${(previewRecord.data as any).pdfFileName}` : ""}
+                  </a>
+                )}
                 {/* Tags */}
                 <TagInput
                   tags={previewRecord.tags || []}

@@ -2,6 +2,7 @@
 
 export type QrType =
   | "url"
+  | "pdf"
   | "text"
   | "phone"
   | "whatsapp"
@@ -49,6 +50,7 @@ export interface QrRecord {
 
 export const QR_TYPE_LABELS: Record<QrType, string> = {
   url: "URL / Website",
+  pdf: "File PDF",
   text: "Teks",
   phone: "Nomor Telepon",
   whatsapp: "WhatsApp",
@@ -64,6 +66,7 @@ export const QR_TYPE_LABELS: Record<QrType, string> = {
 
 export const QR_TYPE_ICONS: Record<QrType, string> = {
   url: "🔗",
+  pdf: "📄",
   text: "📝",
   phone: "📞",
   whatsapp: "💬",

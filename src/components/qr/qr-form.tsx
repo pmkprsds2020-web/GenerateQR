@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { QrType } from "@/lib/qr/qr-types";
 import type { QrFormData } from "@/lib/qr/qr-content";
+import { PdfUploadField } from "./pdf-upload-field";
 
 interface QrFormProps {
   type: QrType;
@@ -92,6 +93,15 @@ export function QrForm({ type, data, errors, onChange }: QrFormProps) {
             inputMode="url"
           />
         </Field>
+      )}
+
+      {type === "pdf" && (
+        <PdfUploadField
+          data={data}
+          error={showError("pdfUrl")}
+          onChange={(patch) => update(patch)}
+          onTouched={() => touch("pdfUrl")}
+        />
       )}
 
       {type === "text" && (

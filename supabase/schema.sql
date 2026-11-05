@@ -80,3 +80,23 @@ create policy "anon full access" on public.templates
 drop policy if exists "anon full access" on public.favorites;
 create policy "anon full access" on public.favorites
   for all to anon, authenticated using (true) with check (true);
+
+-- ---------------------------------------------------------------------------
+-- Storage for the "File PDF" QR type
+-- Public bucket: anyone who scans the QR can open the PDF.
+-- The browser uploads directly with the anon key (insert only, PDF only, max 20 MB).
+-- ---------------------------------------------------------------------------
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('qr-pdfs', 'qr-pdfs', true, 20971520, array['application/pdf'])
+on conflict (id) do update
+  set public = excluded.public,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "qr-pdfs public read" on storage.objects;
+create policy "qr-pdfs public read" on storage.objects
+  for select to anon, authenticated using (bucket_id = 'qr-pdfs');
+
+drop policy if exists "qr-pdfs anon upload" on storage.objects;
+create policy "qr-pdfs anon upload" on storage.objects
+  for insert to anon, authenticated with check (bucket_id = 'qr-pdfs');

@@ -2,8 +2,14 @@
 import type { QrType } from "./qr-types";
 
 export interface QrFormData {
+  // QR title (shared by all types)
+  name?: string;
   // URL
   url?: string;
+  // PDF (uploaded to Supabase Storage, or an existing PDF link)
+  pdfUrl?: string;
+  pdfFileName?: string;
+  pdfFileSize?: number;
   // Text
   text?: string;
   // Phone
@@ -91,6 +97,13 @@ export function generateQrContent(type: QrType, data: QrFormData): string {
       if (!/^https?:\/\//i.test(url) && !/^ftp:\/\//i.test(url)) {
         url = "https://" + url;
       }
+      return url;
+    }
+
+    case "pdf": {
+      let url = (data.pdfUrl || "").trim();
+      if (!url) return "";
+      if (!/^https?:\/\//i.test(url)) url = "https://" + url;
       return url;
     }
 
@@ -227,6 +240,9 @@ export function detectQrType(content: string): { type: QrType; label: string } {
     if (/wa\.me|whatsapp/i.test(c)) return { type: "whatsapp", label: "WhatsApp" };
     if (/google\.com\/maps/i.test(c)) return { type: "location", label: "Lokasi" };
     if (/qris\.id|gojek|ovo\.id|link\.dana|shopee/i.test(c)) return { type: "payment", label: "Pembayaran" };
+    if (/\.pdf(\?|#|$)/i.test(c) || /\/storage\/v1\/object\/public\/qr-pdfs\//i.test(c)) {
+      return { type: "pdf", label: "File PDF" };
+    }
     return { type: "url", label: "URL / Website" };
   }
   if (/^mailto:/i.test(c)) return { type: "email", label: "Email" };

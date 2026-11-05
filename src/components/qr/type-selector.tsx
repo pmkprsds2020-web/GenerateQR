@@ -6,6 +6,7 @@ import type { QrType as QRTypeValue } from "@/lib/qr/qr-types";
 
 const TYPES: QrType[] = [
   "url",
+  "pdf",
   "text",
   "phone",
   "whatsapp",
