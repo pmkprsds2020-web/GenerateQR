@@ -1,33 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getSupabase, mapQrCode, type QrCodeRow } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
 
 // GET /api/qr - List all QR codes
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type");
-    const limit = parseInt(searchParams.get("limit") || "50");
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const limit = Math.min(Math.max(parseInt(searchParams.get("limit") || "50") || 50, 1), 1000);
+    const offset = Math.max(parseInt(searchParams.get("offset") || "0") || 0, 0);
 
-    const where = type && type !== "all" ? { type } : {};
-    const [records, total] = await Promise.all([
-      db.qrCode.findMany({
-        where,
-        orderBy: { createdAt: "desc" },
-        take: limit,
-        skip: offset,
-      }),
-      db.qrCode.count({ where }),
-    ]);
+    let query = getSupabase()
+      .from("qr_codes")
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+    if (type && type !== "all") query = query.eq("type", type);
 
-    return NextResponse.json({ data: records, total, limit, offset });
+    const { data, count, error } = await query;
+    if (error) throw error;
+
+    return NextResponse.json({
+      data: (data as QrCodeRow[]).map(mapQrCode),
+      total: count ?? 0,
+      limit,
+      offset,
+    });
   } catch (error) {
     console.error("[api/qr] Failed to fetch QR codes:", error);
     return NextResponse.json({ error: "Failed to fetch QR codes" }, { status: 500 });
   }
 }
 
-// POST /api/qr/generate - Create a new QR code
+// POST /api/qr - Create or update (upsert) a QR code
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -39,32 +45,28 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Basic validation
     if (typeof content !== "string" || content.length > 4000) {
       return NextResponse.json({ error: "Content too long" }, { status: 400 });
     }
 
-    const record = await db.qrCode.upsert({
-      where: { id: id || "__none__" },
-      create: {
-        ...(id ? { id: String(id) } : {}),
-        name: String(name).slice(0, 255),
-        type: String(type),
-        content: String(content).slice(0, 4000),
-        customization: customization ? JSON.stringify(customization) : null,
-        userId: userId || null,
-        isPublic: isPublic !== false,
-      },
-      update: {
-        name: String(name).slice(0, 255),
-        type: String(type),
-        content: String(content).slice(0, 4000),
-        customization: customization ? JSON.stringify(customization) : null,
-      },
-    });
+    const row: Record<string, unknown> = {
+      name: String(name).slice(0, 255),
+      type: String(type),
+      content: String(content).slice(0, 4000),
+      customization: customization ? JSON.stringify(customization) : null,
+    };
+    if (id) row.id = String(id);
+    if (userId) row.user_id = String(userId);
+    if (isPublic !== undefined) row.is_public = isPublic !== false;
 
-    return NextResponse.json({ data: record }, { status: 201 });
+    const { data, error } = await getSupabase()
+      .from("qr_codes")
+      .upsert(row, { onConflict: "id" })
+      .select()
+      .single();
+    if (error) throw error;
+
+    return NextResponse.json({ data: mapQrCode(data as QrCodeRow) }, { status: 201 });
   } catch (error) {
     console.error("[api/qr] Failed to create QR code:", error);
     return NextResponse.json({ error: "Failed to create QR code" }, { status: 500 });

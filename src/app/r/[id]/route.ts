@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getSupabase } from "@/lib/supabase";
 import { decodeBase64Url, normalizeDestinationUrl } from "@/lib/qr/qr-tracking";
 
 export const runtime = "nodejs";
@@ -36,13 +36,13 @@ export async function GET(
   const { id } = await params;
 
   try {
-    const record = await withTimeout(
-      db.qrCode.update({
-        where: { id },
-        data: { scanCount: { increment: 1 } },
-      }),
+    const { data, error } = await withTimeout(
+      Promise.resolve(getSupabase().rpc("increment_qr_scan", { qr_id: id })),
       4000
     );
+    if (error) throw error;
+    const record = Array.isArray(data) ? data[0] : data;
+    if (!record) throw new Error("not found");
     const destination = normalizeDestinationUrl(record.content);
     if (destination) return redirectTo(destination);
   } catch (error) {

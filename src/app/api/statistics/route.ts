@@ -1,14 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getSupabase } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
 
 // GET /api/statistics - Get QR code statistics
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
+    const supabase = getSupabase();
 
-    const where = userId ? { userId } : {};
-    const total = await db.qrCode.count({ where });
+    // Pull just the columns needed and aggregate in JS (fine for this app's scale).
+    let query = supabase.from("qr_codes").select("type, created_at").limit(10000);
+    if (userId) query = query.eq("user_id", userId);
+    const { data: rows, error } = await query;
+    if (error) throw error;
+
+    let favQuery = supabase.from("favorites").select("id", { count: "exact", head: true });
+    if (userId) favQuery = favQuery.eq("user_id", userId);
+    const { count: favorites, error: favError } = await favQuery;
+    if (favError) throw favError;
 
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -16,43 +27,35 @@ export async function GET(req: NextRequest) {
     weekAgo.setDate(weekAgo.getDate() - 7);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [today, week, month, byTypeRaw] = await Promise.all([
-      db.qrCode.count({ where: { ...where, createdAt: { gte: todayStart } } }),
-      db.qrCode.count({ where: { ...where, createdAt: { gte: weekAgo } } }),
-      db.qrCode.count({ where: { ...where, createdAt: { gte: monthStart } } }),
-      db.qrCode.groupBy({
-        by: ["type"],
-        _count: true,
-        orderBy: { _count: { type: "desc" } },
-      }),
-    ]);
+    const records = (rows ?? []).map((r) => ({ type: r.type as string, created: new Date(r.created_at as string) }));
 
-    const favorites = await db.favorite.count(userId ? { where: { userId } } : undefined);
+    const byTypeMap = new Map<string, number>();
+    for (const r of records) byTypeMap.set(r.type, (byTypeMap.get(r.type) ?? 0) + 1);
 
-    // Last 7 days breakdown
     const last7Days: { date: string; count: number }[] = [];
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
       const dayEnd = new Date(dayStart);
       dayEnd.setDate(dayEnd.getDate() + 1);
-      const count = await db.qrCode.count({
-        where: { ...where, createdAt: { gte: dayStart, lt: dayEnd } },
+      last7Days.push({
+        date: dayStart.toISOString().slice(0, 10),
+        count: records.filter((r) => r.created >= dayStart && r.created < dayEnd).length,
       });
-      last7Days.push({ date: dayStart.toISOString().slice(0, 10), count });
     }
 
     return NextResponse.json({
-      total,
-      today,
-      week,
-      month,
-      favorites,
-      byType: byTypeRaw.map((t) => ({ type: t.type, count: t._count })),
+      total: records.length,
+      today: records.filter((r) => r.created >= todayStart).length,
+      week: records.filter((r) => r.created >= weekAgo).length,
+      month: records.filter((r) => r.created >= monthStart).length,
+      favorites: favorites ?? 0,
+      byType: [...byTypeMap.entries()]
+        .map(([type, count]) => ({ type, count }))
+        .sort((a, b) => b.count - a.count),
       last7Days,
     });
-  } catch {
+  } catch (error) {
+    console.error("[api/statistics] Failed to fetch statistics:", error);
     return NextResponse.json({ error: "Failed to fetch statistics" }, { status: 500 });
   }
 }

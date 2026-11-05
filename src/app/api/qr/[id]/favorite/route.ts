@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getSupabase } from "@/lib/supabase";
+
+export const dynamic = "force-dynamic";
 
 // POST /api/qr/{id}/favorite - Toggle favorite
 export async function POST(
@@ -16,18 +18,26 @@ export async function POST(
       return NextResponse.json({ success: true, message: "Favorite toggled client-side" });
     }
 
-    const existing = await db.favorite.findUnique({
-      where: { userId_qrCodeId: { userId, qrCodeId: id } },
-    });
+    const supabase = getSupabase();
+    const { data: existing, error: findError } = await supabase
+      .from("favorites")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("qr_code_id", id)
+      .maybeSingle();
+    if (findError) throw findError;
 
     if (existing) {
-      await db.favorite.delete({ where: { id: existing.id } });
+      const { error } = await supabase.from("favorites").delete().eq("id", existing.id);
+      if (error) throw error;
       return NextResponse.json({ success: true, favorite: false });
-    } else {
-      await db.favorite.create({ data: { userId, qrCodeId: id } });
-      return NextResponse.json({ success: true, favorite: true });
     }
-  } catch {
+
+    const { error } = await supabase.from("favorites").insert({ user_id: userId, qr_code_id: id });
+    if (error) throw error;
+    return NextResponse.json({ success: true, favorite: true });
+  } catch (error) {
+    console.error("[api/qr/id/favorite] Failed to toggle favorite:", error);
     return NextResponse.json({ error: "Failed to toggle favorite" }, { status: 500 });
   }
 }
