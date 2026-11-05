@@ -13,7 +13,8 @@ export async function GET(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     return NextResponse.json({ data: record });
-  } catch {
+  } catch (error) {
+    console.error("[api/qr/id] Failed to fetch:", error);
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }
 }
@@ -40,7 +41,8 @@ export async function PUT(
       },
     });
     return NextResponse.json({ data: record });
-  } catch {
+  } catch (error) {
+    console.error("[api/qr/id] Failed to update:", error);
     return NextResponse.json({ error: "Failed to update" }, { status: 500 });
   }
 }
@@ -54,7 +56,8 @@ export async function DELETE(
     const { id } = await params;
     await db.qrCode.delete({ where: { id } });
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error("[api/qr/id] Failed to delete:", error);
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   }
 }

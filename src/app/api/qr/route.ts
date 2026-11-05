@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ data: records, total, limit, offset });
   } catch (error) {
+    console.error("[api/qr] Failed to fetch QR codes:", error);
     return NextResponse.json({ error: "Failed to fetch QR codes" }, { status: 500 });
   }
 }
@@ -65,6 +66,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ data: record }, { status: 201 });
   } catch (error) {
+    console.error("[api/qr] Failed to create QR code:", error);
     return NextResponse.json({ error: "Failed to create QR code" }, { status: 500 });
   }
 }

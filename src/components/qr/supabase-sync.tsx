@@ -20,7 +20,28 @@ export function SupabaseSync() {
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
         if (!json?.data || !Array.isArray(json.data)) return;
-        const localIds = new Set(useQrStore.getState().records.map((r) => r.id));
+        const localRecords = useQrStore.getState().records;
+        const localIds = new Set(localRecords.map((r) => r.id));
+        const dbIds = new Set(json.data.map((row: any) => row.id));
+
+        // Push local records the database doesn't have yet (e.g. created while
+        // the database was down) so their /r/{id} scans can be counted.
+        localRecords
+          .filter((r) => !dbIds.has(r.id))
+          .forEach((r) => {
+            fetch("/api/qr", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: r.id,
+                name: r.name,
+                type: r.type,
+                content: r.content,
+                customization: r.customization,
+              }),
+            }).catch(() => {});
+          });
+
         const fromDb: QrRecord[] = json.data
           .filter((row: any) => !localIds.has(row.id))
           .map((row: any) => ({
